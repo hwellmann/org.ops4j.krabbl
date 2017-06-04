@@ -28,16 +28,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.ops4j.krabbl.api.Page;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.spi.Frontier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.ops4j.krabbl.core.url.WebTargetBuilder;
 
 /**
  * @author Harald Wellmann
  *
  */
 public class InMemoryFrontier implements Frontier {
-
-    private static Logger logger = LoggerFactory.getLogger(InMemoryFrontier.class);
 
     private Map<WebTarget, PageStatus> pageMap = new ConcurrentHashMap<>();
 
@@ -56,7 +53,7 @@ public class InMemoryFrontier implements Frontier {
 
     @Override
     public long getNumberOfAssignedPages() {
-        return processingMap.size();
+        return pageMap.size();
     }
 
     @Override
@@ -75,34 +72,20 @@ public class InMemoryFrontier implements Frontier {
     }
 
     @Override
-    public void close() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void finish() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public CompletableFuture<Page> consume() {
-        logger.info("processing {} pages of {} total", processingMap.size(), pageMap.size());
         return queue.poll();
     }
 
     @Override
     public boolean isSeenBefore(String url) {
-        WebTarget target = new WebTarget();
-        target.setUrl(url);
+        WebTarget target = new WebTargetBuilder(url).build();
         return pageMap.containsKey(target);
     }
 
     @Override
     public void monitor(WebTarget url, CompletableFuture<Page> page) {
         processingMap.put(url, page);
-        pageMap.put(url, PageStatus.PROCESSING);
+        pageMap.put(url, PageStatus.SCHEDULED);
         queue.offer(page);
     }
 
@@ -116,5 +99,4 @@ public class InMemoryFrontier implements Frontier {
             monitor(urls.get(i), pages.get(i));
         }
     }
-
 }

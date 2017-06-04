@@ -24,6 +24,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -58,6 +59,7 @@ public class PageFetcher {
     public PageFetcher(CrawlerConfiguration config) {
         this.config = config;
         RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(false)
+            .setCookieSpec(CookieSpecs.STANDARD)
             .setRedirectsEnabled(false).setSocketTimeout(config.getSocketTimeout())
             .setConnectTimeout(config.getConnectionTimeout()).build();
 

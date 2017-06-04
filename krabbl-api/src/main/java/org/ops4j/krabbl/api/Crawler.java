@@ -51,6 +51,4 @@ public interface Crawler {
      * process new pages.
      */
     void shutdown();
-
-    void setPageVisitor(PageVisitor visitor);
 }

@@ -26,18 +26,6 @@ import org.apache.http.message.BasicHeader;
 public class CrawlerConfiguration {
 
     /**
-     * The folder which will be used by crawler for storing the intermediate
-     * crawl data. The content of this folder should not be modified manually.
-     */
-    private String crawlStorageFolder;
-
-    /**
-     * If this feature is enabled, you would be able to resume a previously
-     * stopped/crashed crawl. However, it makes crawling slightly slower
-     */
-    private boolean resumableCrawling = false;
-
-    /**
      * Maximum depth of crawling For unlimited depth this parameter should be
      * set to -1
      */
@@ -53,7 +41,7 @@ public class CrawlerConfiguration {
      * user-agent string that is used for representing your crawler to web
      * servers. See http://en.wikipedia.org/wiki/User_agent for more details
      */
-    private String userAgentString = "crawler4j (https://github.com/yasserg/crawler4j/)";
+    private String userAgentString = "krabbl (https://github.com/hwellmann/org.ops4j.krabbl/)";
 
     /**
      * Default request header values.
@@ -75,11 +63,6 @@ public class CrawlerConfiguration {
      * Should we fetch binary content such as images, audio, ...?
      */
     private boolean includeBinaryContentInCrawling = false;
-
-    /**
-     * Should we process binary content such as image, audio, ... using TIKA?
-     */
-    private boolean processBinaryContentInCrawling = false;
 
     /**
      * Maximum Connections per host
@@ -125,26 +108,6 @@ public class CrawlerConfiguration {
     private boolean onlineTldListUpdate = false;
 
     /**
-     * Should the crawler stop running when the queue is empty?
-     */
-    private boolean shutdownOnEmptyQueue = true;
-
-    /**
-     * Wait this long before checking the status of the worker threads.
-     */
-    private int threadMonitoringDelaySeconds = 10;
-
-    /**
-     * Wait this long to verify the craweler threads are finished working.
-     */
-    private int threadShutdownDelaySeconds = 10;
-
-    /**
-     * Wait this long in seconds before launching cleanup.
-     */
-    private int cleanupDelaySeconds = 10;
-
-    /**
      * If crawler should run behind a proxy, this parameter can be used for
      * specifying the proxy host.
      */
@@ -186,9 +149,6 @@ public class CrawlerConfiguration {
      * @throws Exception on Validation fail
      */
     public void validate() throws Exception {
-        if (crawlStorageFolder == null) {
-            throw new Exception("Crawl storage folder is not set in the CrawlConfig.");
-        }
         if (politenessDelay < 0) {
             throw new Exception("Invalid value for politeness delay: " + politenessDelay);
         }
@@ -200,34 +160,6 @@ public class CrawlerConfiguration {
         if (maxDepthOfCrawling > Short.MAX_VALUE) {
             throw new Exception("Maximum value for crawl depth is " + Short.MAX_VALUE);
         }
-    }
-
-    public String getCrawlStorageFolder() {
-        return crawlStorageFolder;
-    }
-
-    /**
-     * The folder which will be used by crawler for storing the intermediate
-     * crawl data. The content of this folder should not be modified manually.
-     *
-     * @param crawlStorageFolder The folder for the crawler's storage
-     */
-    public void setCrawlStorageFolder(String crawlStorageFolder) {
-        this.crawlStorageFolder = crawlStorageFolder;
-    }
-
-    public boolean isResumableCrawling() {
-        return resumableCrawling;
-    }
-
-    /**
-     * If this feature is enabled, you would be able to resume a previously
-     * stopped/crashed crawl. However, it makes crawling slightly slower
-     *
-     * @param resumableCrawling Should crawling be resumable between runs ?
-     */
-    public void setResumableCrawling(boolean resumableCrawling) {
-        this.resumableCrawling = resumableCrawling;
     }
 
     public int getMaxDepthOfCrawling() {
@@ -332,17 +264,6 @@ public class CrawlerConfiguration {
         this.includeBinaryContentInCrawling = includeBinaryContentInCrawling;
     }
 
-    public boolean isProcessBinaryContentInCrawling() {
-        return processBinaryContentInCrawling;
-    }
-
-    /**
-     * Should we process binary content such as images, audio, ... using TIKA?
-     */
-    public void setProcessBinaryContentInCrawling(boolean processBinaryContentInCrawling) {
-        this.processBinaryContentInCrawling = processBinaryContentInCrawling;
-    }
-
     public int getMaxConnectionsPerHost() {
         return maxConnectionsPerHost;
     }
@@ -421,17 +342,6 @@ public class CrawlerConfiguration {
         this.followRedirects = followRedirects;
     }
 
-    public boolean isShutdownOnEmptyQueue() {
-        return shutdownOnEmptyQueue;
-    }
-
-    /**
-     * Should the crawler stop running when the queue is empty?
-     */
-    public void setShutdownOnEmptyQueue(boolean shutdown) {
-        shutdownOnEmptyQueue = shutdown;
-    }
-
     public boolean isOnlineTldListUpdate() {
         return onlineTldListUpdate;
     }
@@ -496,30 +406,6 @@ public class CrawlerConfiguration {
         this.proxyPassword = proxyPassword;
     }
 
-    public int getThreadMonitoringDelaySeconds() {
-        return threadMonitoringDelaySeconds;
-    }
-
-    public void setThreadMonitoringDelaySeconds(int delay) {
-        this.threadMonitoringDelaySeconds = delay;
-    }
-
-    public int getThreadShutdownDelaySeconds() {
-        return threadShutdownDelaySeconds;
-    }
-
-    public void setThreadShutdownDelaySeconds(int delay) {
-        this.threadShutdownDelaySeconds = delay;
-    }
-
-    public int getCleanupDelaySeconds() {
-        return cleanupDelaySeconds;
-    }
-
-    public void setCleanupDelaySeconds(int delay) {
-        this.cleanupDelaySeconds = delay;
-    }
-
     public boolean isRespectNoFollow() {
         return respectNoFollow;
     }
@@ -539,8 +425,6 @@ public class CrawlerConfiguration {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Crawl storage folder: " + getCrawlStorageFolder() + "\n");
-        sb.append("Resumable crawling: " + isResumableCrawling() + "\n");
         sb.append("Max depth of crawl: " + getMaxDepthOfCrawling() + "\n");
         sb.append("Max pages to fetch: " + getMaxPagesToFetch() + "\n");
         sb.append("User agent string: " + getUserAgentString() + "\n");
@@ -557,9 +441,6 @@ public class CrawlerConfiguration {
         sb.append("Proxy port: " + getProxyPort() + "\n");
         sb.append("Proxy username: " + getProxyUsername() + "\n");
         sb.append("Proxy password: " + getProxyPassword() + "\n");
-        sb.append("Thread monitoring delay: " + getThreadMonitoringDelaySeconds() + "\n");
-        sb.append("Thread shutdown delay: " + getThreadShutdownDelaySeconds() + "\n");
-        sb.append("Cleanup delay: " + getCleanupDelaySeconds() + "\n");
         sb.append("Respect nofollow: " + isRespectNoFollow() + "\n");
         sb.append("Respect noindex: " + isRespectNoIndex() + "\n");
         return sb.toString();

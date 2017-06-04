@@ -60,7 +60,7 @@ public class WebTargetBuilder {
 
         WebTarget target = new WebTarget();
         target.setUrl(url);
-        target.setDomain(subDomain);
+        target.setDomain(domain);
         target.setSubDomain(subDomain);
         target.setPath(path);
         return target;

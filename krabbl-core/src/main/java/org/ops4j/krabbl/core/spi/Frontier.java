@@ -38,8 +38,14 @@ public interface Frontier {
     long getNumberOfProcessedPages();
     long getNumberOfScheduledPages();
     boolean isFinished();
-    void close();
-    void finish();
     boolean isSeenBefore(String url);
     CompletableFuture<Page> consume();
+
+    default void close() {
+
+    }
+
+    default void finish() {
+
+    }
 }

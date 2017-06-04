@@ -5,7 +5,7 @@ package org.ops4j.krabbl.core.exc;
  *
  * Thrown when there is a problem with the content fetching - this is a tagging exception
  */
-public class ContentFetchException extends Exception {
+public class ContentFetchException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 

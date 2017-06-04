@@ -32,38 +32,17 @@ public class TopLevelDomainList {
     private static final TopLevelDomainList instance = new TopLevelDomainList(); // Singleton
 
     private TopLevelDomainList() {
-        if (onlineUpdate) {
-            URL url;
-            try {
-                url = new URL(TLD_NAMES_ONLINE_URL);
-            } catch (MalformedURLException e) {
-                // This cannot happen... No need to treat it
-                logger.error("Invalid URL: {}", TLD_NAMES_ONLINE_URL);
-                throw new RuntimeException(e);
-            }
-
-            try (InputStream stream = url.openStream()) {
-                logger.debug("Fetching the most updated TLD list online");
-                int n = readStream(stream);
-                logger.info("Obtained {} TLD from URL {}", n, TLD_NAMES_ONLINE_URL);
-                return;
-            } catch (Exception e) {
-                logger.error("Couldn't fetch the online list of TLDs from: {}",
-                             TLD_NAMES_ONLINE_URL, e);
-            }
+        if (onlineUpdate && fetchOnlineList()) {
+            return;
         }
 
-        File f = new File(TLD_NAMES_TXT_FILENAME);
-        if (f.exists()) {
-            logger.debug("Fetching the list from a local file {}", TLD_NAMES_TXT_FILENAME);
-            try (InputStream tldFile = new FileInputStream(f)) {
-                int n = readStream(tldFile);
-                logger.info("Obtained {} TLD from local file {}", n, TLD_NAMES_TXT_FILENAME);
-                return;
-            } catch (IOException e) {
-                logger.error("Couldn't read the TLD list from local file", e);
-            }
+        if (fetchFromLocalFile()) {
+            return;
         }
+        fetchFromClasspath();
+    }
+
+    private void fetchFromClasspath() {
         try (InputStream tldFile = getClass().getClassLoader()
                                              .getResourceAsStream(TLD_NAMES_TXT_FILENAME)) {
             int n = readStream(tldFile);
@@ -72,6 +51,43 @@ public class TopLevelDomainList {
             logger.error("Couldn't read the TLD list from file");
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean fetchFromLocalFile() {
+        File f = new File(TLD_NAMES_TXT_FILENAME);
+        if (f.exists()) {
+            logger.debug("Fetching the list from a local file {}", TLD_NAMES_TXT_FILENAME);
+            try (InputStream tldFile = new FileInputStream(f)) {
+                int n = readStream(tldFile);
+                logger.info("Obtained {} TLD from local file {}", n, TLD_NAMES_TXT_FILENAME);
+                return true;
+            } catch (IOException e) {
+                logger.error("Couldn't read the TLD list from local file", e);
+            }
+        }
+        return false;
+    }
+
+    private boolean fetchOnlineList() {
+        URL url;
+        try {
+            url = new URL(TLD_NAMES_ONLINE_URL);
+        } catch (MalformedURLException e) {
+            // This cannot happen... No need to treat it
+            logger.error("Invalid URL: {}", TLD_NAMES_ONLINE_URL);
+            throw new RuntimeException(e);
+        }
+
+        try (InputStream stream = url.openStream()) {
+            logger.debug("Fetching the most updated TLD list online");
+            int n = readStream(stream);
+            logger.info("Obtained {} TLD from URL {}", n, TLD_NAMES_ONLINE_URL);
+            return true;
+        } catch (Exception e) {
+            logger.error("Couldn't fetch the online list of TLDs from: {}",
+                         TLD_NAMES_ONLINE_URL, e);
+        }
+        return false;
     }
 
     private int readStream(InputStream stream) {
