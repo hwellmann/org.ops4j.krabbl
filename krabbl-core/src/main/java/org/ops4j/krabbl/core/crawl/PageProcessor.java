@@ -35,6 +35,8 @@ import org.ops4j.krabbl.core.fetch.PageFetchResult;
 import org.ops4j.krabbl.core.fetch.PageFetcher;
 import org.ops4j.krabbl.core.parse.HtmlParseData;
 import org.ops4j.krabbl.core.parse.JsoupHtmlParser;
+import org.ops4j.krabbl.core.robots.RobotsConfiguration;
+import org.ops4j.krabbl.core.robots.RobotsControl;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.spi.Parser;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
@@ -57,6 +59,7 @@ public class PageProcessor {
 
     private PageFetcher pageFetcher;
 
+    private RobotsControl robotsControl;
     private Parser parser;
 
     public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier) {
@@ -65,6 +68,7 @@ public class PageProcessor {
         this.frontier = frontier;
         this.parser = new JsoupHtmlParser();
         this.pageFetcher = new PageFetcher(config);
+        this.robotsControl = new RobotsControl(new RobotsConfiguration(), pageFetcher);
     }
 
     public List<WebTarget> handleOutgoingLinks(Page page) {
@@ -190,7 +194,17 @@ public class PageProcessor {
     private WebTarget handleRedirects(Page page) {
         if (page.getRedirectedToUrl() != null && config.isFollowRedirects()) {
             if (visitor.shouldVisit(page, page.getRedirectedToUrl())) {
-                return page.getRedirectedToUrl();
+
+                WebTarget currentTarget = page.getWebTarget();
+                if (!visitor.shouldFollowLinksIn(currentTarget) || robotsControl.allows(currentTarget)) {
+                    return page.getRedirectedToUrl();
+                } else {
+                    logger.debug(
+                        "Not visiting: {} as per the server's \"robots.txt\" policy",
+                        currentTarget.getUrl());
+                }
+
+
             }
             else {
                 logger.debug("Not visiting: {} as per your \"shouldVisit\" policy",
@@ -219,15 +233,18 @@ public class PageProcessor {
                 // This is not the first time that this Url is visited. So, we set the
                 // depth to a negative number.
                 webUrl.setDepth((short) -1);
-                // webUrl.setDocid(newdocid);
             }
             else {
-                webUrl.setDocid(-1);
                 webUrl.setDepth(curUrl.getDepth() + 1);
                 if ((maxCrawlDepth == -1) || (curUrl.getDepth() < maxCrawlDepth)) {
                     if (visitor.shouldVisit(page, webUrl)) {
-                        // webUrl.setDocid(docIdServer.getNewDocID(webUrl.getUrl()));
-                        toSchedule.add(webUrl);
+                        if (robotsControl.allows(webUrl)) {
+                            toSchedule.add(webUrl);
+                        } else {
+                            logger.debug(
+                                "Not visiting: {} as per the server's \"robots.txt\" " +
+                                "policy", webUrl.getUrl());
+                        }
                     }
                     else {
                         logger.debug("Not visiting: {} as per your \"shouldVisit\" policy",
