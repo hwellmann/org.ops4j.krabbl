@@ -18,9 +18,7 @@
 package org.ops4j.krabbl.core.spi;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-import org.ops4j.krabbl.api.Page;
 import org.ops4j.krabbl.api.WebTarget;
 
 /**
@@ -29,18 +27,17 @@ import org.ops4j.krabbl.api.WebTarget;
 
 public interface Frontier {
 
-    void monitor(WebTarget url, CompletableFuture<Page> page);
-    void monitor(List<WebTarget> url, List<CompletableFuture<Page>> page);
+    void schedule(WebTarget url);
+    void schedule(List<WebTarget> url);
 
     void setProcessed(WebTarget webURL);
+    void setProcessing(WebTarget webURL);
 
-    long getNumberOfAssignedPages();
+    long getNumberOfProcessingPages();
     long getNumberOfProcessedPages();
     long getNumberOfScheduledPages();
     boolean isFinished();
     boolean isSeenBefore(String url);
-    CompletableFuture<Page> consume();
-
     default void close() {
 
     }

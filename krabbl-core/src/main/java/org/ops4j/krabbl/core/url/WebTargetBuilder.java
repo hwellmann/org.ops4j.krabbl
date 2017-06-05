@@ -32,6 +32,7 @@ public class WebTargetBuilder {
     }
 
     public WebTarget build() {
+        url = UrlCanonicalizer.getCanonicalURL(url);
         int domainStartIdx = url.indexOf("//") + 2;
         int domainEndIdx = url.indexOf('/', domainStartIdx);
         domainEndIdx = (domainEndIdx > domainStartIdx) ? domainEndIdx : url.length();

@@ -29,45 +29,45 @@ public class Page {
     /**
      * The URL of this page.
      */
-    protected WebTarget webTarget;
+    private WebTarget webTarget;
 
     /**
      * Redirection flag
      */
-    protected boolean redirect;
+    private boolean redirect;
 
     /**
      * The URL to which this page will be redirected to
      */
-    protected String redirectedToUrl;
+    private WebTarget redirectedToUrl;
 
     /**
      * Status of the page
      */
-    protected int statusCode;
+    private int statusCode;
 
     /**
      * The content of this page in binary format.
      */
-    protected byte[] contentData;
+    private byte[] contentData;
 
     /**
      * The ContentType of this page.
      * For example: "text/html; charset=UTF-8"
      */
-    protected String contentType;
+    private String contentType;
 
     /**
      * The encoding of the content.
      * For example: "gzip"
      */
-    protected String contentEncoding;
+    private String contentEncoding;
 
     /**
      * The charset of the content.
      * For example: "UTF-8"
      */
-    protected String contentCharset;
+    private String contentCharset;
 
     /**
      * Language of the Content.
@@ -77,12 +77,12 @@ public class Page {
     /**
      * Headers which were present in the response of the fetch request
      */
-    protected Header[] fetchResponseHeaders;
+    private Header[] fetchResponseHeaders;
 
     /**
      * Whether the content was truncated because the received data exceeded the imposed maximum
      */
-    protected boolean truncated = false;
+    private boolean truncated = false;
 
     private org.ops4j.krabbl.api.ParseData parseData;
 
@@ -107,11 +107,11 @@ public class Page {
         this.redirect = redirect;
     }
 
-    public String getRedirectedToUrl() {
+    public WebTarget getRedirectedToUrl() {
         return redirectedToUrl;
     }
 
-    public void setRedirectedToUrl(String redirectedToUrl) {
+    public void setRedirectedToUrl(WebTarget redirectedToUrl) {
         this.redirectedToUrl = redirectedToUrl;
     }
 
@@ -212,6 +212,4 @@ public class Page {
     public void setParseData(ParseData parseData) {
         this.parseData = parseData;
     }
-
-
 }

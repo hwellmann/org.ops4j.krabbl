@@ -17,12 +17,15 @@
  */
 package org.ops4j.krabbl.core.crawl;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Collectors;
 
 import org.ops4j.krabbl.api.Crawler;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
@@ -54,11 +57,13 @@ public class DefaultCrawler implements Crawler {
 
     private boolean shuttingDown;
 
+    private BlockingQueue<CompletableFuture<Page>> queue = new LinkedBlockingQueue<>();
+
     public DefaultCrawler(CrawlerConfiguration config, PageVisitor visitor) {
         this.executor = Executors.newScheduledThreadPool(2);
         this.frontier = new InMemoryFrontier();
         this.seeds = new ArrayList<>();
-        this.pageProcessor = new PageProcessor(config, visitor, frontier, this::asyncLoad);
+        this.pageProcessor = new PageProcessor(config, visitor, frontier);
     }
 
     @Override
@@ -94,27 +99,41 @@ public class DefaultCrawler implements Crawler {
     }
 
     private void execute() {
-        pageProcessor.schedule(seeds);
+        schedule(seeds);
         CompletableFuture<Page> futurePage = null;
-        while ((futurePage = frontier.consume()) != null) {
-            if (shuttingDown) {
-                futurePage.complete(null);
-                futurePage.join();
-            }
-            else {
-                futurePage.thenApply(pageProcessor::handleOutgoingLinks).thenAccept(this::schedule).join();
-                logger.info("processed {} pages of {} total", frontier.getNumberOfProcessedPages(), frontier.getNumberOfAssignedPages());
-            }
+        while ((futurePage = queue.poll()) != null) {
+            completeOnePage(futurePage);
+        }
+        assert frontier.isFinished() || shuttingDown;
+    }
+
+    private void completeOnePage(CompletableFuture<Page> futurePage) {
+        if (shuttingDown) {
+            cancelOrWaitForPage(futurePage);
+        }
+        else {
+            processAndWaitForPage(futurePage);
         }
     }
 
-    public void schedule(List<WebTarget> targets) {
-        List<CompletableFuture<Page>> pages = targets.stream().map(this::asyncLoad)
-            .collect(Collectors.toList());
-        frontier.monitor(targets, pages);
+    private void cancelOrWaitForPage(CompletableFuture<Page> futurePage) {
+        futurePage.complete(null);
+        futurePage.join();
     }
 
+    private void processAndWaitForPage(CompletableFuture<Page> futurePage) {
+        futurePage.thenApply(pageProcessor::handleOutgoingLinks).thenApply(this::schedule).join();
+        logger.info("processed {} pages of {} total", frontier.getNumberOfProcessedPages(),
+            frontier.getNumberOfScheduledPages());
+    }
 
+    public List<CompletableFuture<Page>> schedule(List<WebTarget> targets) {
+        List<CompletableFuture<Page>> pages = targets.stream().map(this::asyncLoad)
+            .collect(toList());
+        frontier.schedule(targets);
+        queue.addAll(pages);
+        return pages;
+    }
 
     private CompletableFuture<Page> asyncLoad(WebTarget target) {
         return CompletableFuture.supplyAsync(() -> pageProcessor.processPage(target), executor);

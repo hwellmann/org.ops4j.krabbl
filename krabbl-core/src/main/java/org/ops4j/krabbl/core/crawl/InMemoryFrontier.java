@@ -19,13 +19,9 @@ package org.ops4j.krabbl.core.crawl;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.ops4j.krabbl.api.Page;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
@@ -38,22 +34,20 @@ public class InMemoryFrontier implements Frontier {
 
     private Map<WebTarget, PageStatus> pageMap = new ConcurrentHashMap<>();
 
-    private Map<WebTarget, CompletableFuture<Page>> processingMap = new ConcurrentHashMap<>();
-
-    private BlockingQueue<CompletableFuture<Page>> queue = new LinkedBlockingQueue<>();
-
     private AtomicLong numProcessed = new AtomicLong();
+    private AtomicLong numProcessing = new AtomicLong();
 
     @Override
     public void setProcessed(WebTarget url) {
-        pageMap.put(url, PageStatus.DONE);
-        processingMap.remove(url);
+        pageMap.put(url, PageStatus.PROCESSED);
+        numProcessing.decrementAndGet();
         numProcessed.incrementAndGet();
+
     }
 
     @Override
-    public long getNumberOfAssignedPages() {
-        return pageMap.size();
+    public long getNumberOfProcessingPages() {
+        return numProcessing.get();
     }
 
     @Override
@@ -63,17 +57,12 @@ public class InMemoryFrontier implements Frontier {
 
     @Override
     public long getNumberOfScheduledPages() {
-        return queue.size();
+        return pageMap.size();
     }
 
     @Override
     public boolean isFinished() {
-        return queue.isEmpty() && processingMap.isEmpty();
-    }
-
-    @Override
-    public CompletableFuture<Page> consume() {
-        return queue.poll();
+        return (numProcessing.get() == 0) && (numProcessed.get() == pageMap.size());
     }
 
     @Override
@@ -83,20 +72,18 @@ public class InMemoryFrontier implements Frontier {
     }
 
     @Override
-    public void monitor(WebTarget url, CompletableFuture<Page> page) {
-        processingMap.put(url, page);
+    public void schedule(WebTarget url) {
         pageMap.put(url, PageStatus.SCHEDULED);
-        queue.offer(page);
     }
 
     @Override
-    public void monitor(List<WebTarget> urls, List<CompletableFuture<Page>> pages) {
-        if (urls.size() != pages.size()) {
-            throw new IllegalArgumentException("url and page lists must have same size");
-        }
+    public void schedule(List<WebTarget> urls) {
+        urls.forEach(this::schedule);
+    }
 
-        for (int i = 0; i < urls.size(); i++) {
-            monitor(urls.get(i), pages.get(i));
-        }
+    @Override
+    public void setProcessing(WebTarget target) {
+        pageMap.put(target, PageStatus.PROCESSING);
+        numProcessing.incrementAndGet();
     }
 }

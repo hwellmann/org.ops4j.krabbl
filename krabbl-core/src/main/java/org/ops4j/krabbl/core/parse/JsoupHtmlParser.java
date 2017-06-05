@@ -63,7 +63,7 @@ public class JsoupHtmlParser implements Parser {
 
         findMetaTags(page, contextUrl, document);
         findHrefLinks(page, contextUrl, document);
-        //findSrcLinks(page, contextUrl, document);
+        findSrcLinks(page, contextUrl, document);
     }
 
     private void findHrefLinks(Page page, String contextUrl, Document document) {

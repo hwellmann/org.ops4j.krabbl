@@ -25,5 +25,5 @@ public enum PageStatus {
 
     SCHEDULED,
     PROCESSING,
-    DONE
+    PROCESSED
 }

@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.impl.EnglishReasonPhraseCatalog;
@@ -39,6 +37,7 @@ import org.ops4j.krabbl.core.parse.HtmlParseData;
 import org.ops4j.krabbl.core.parse.JsoupHtmlParser;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.spi.Parser;
+import org.ops4j.krabbl.core.url.WebTargetBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,39 +59,34 @@ public class PageProcessor {
 
     private Parser parser;
 
-    private AsyncLoader loader;
-
-
-    public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier, AsyncLoader loader) {
+    public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier) {
         this.config = config;
         this.visitor = visitor;
         this.frontier = frontier;
-        this.loader = loader;
         this.parser = new JsoupHtmlParser();
         this.pageFetcher = new PageFetcher(config);
     }
 
     public List<WebTarget> handleOutgoingLinks(Page page) {
-        if (page == null || page.getParseData() == null) {
+        if (page == null) {
+            return Collections.emptyList();
+        }
+        WebTarget redirectedTo = handleRedirects(page);
+        if (redirectedTo != null) {
+            return Collections.singletonList(redirectedTo);
+        }
+
+        if (page.getParseData() == null) {
             return Collections.emptyList();
         }
         return processParsedLinks(page);
-    }
-
-    public void schedule(List<WebTarget> targets) {
-        List<CompletableFuture<Page>> pages = targets.stream().map(loader::asyncLoad)
-            .collect(Collectors.toList());
-        frontier.monitor(targets, pages);
-    }
-
-    private void schedule(WebTarget seed) {
-        frontier.monitor(seed, loader.asyncLoad(seed));
     }
 
     public Page processPage(WebTarget target) {
         if (target == null) {
             return null;
         }
+        frontier.setProcessing(target);
         Page page = new Page(target);
 
         PageFetchResult fetchResult = null;
@@ -154,10 +148,15 @@ public class PageProcessor {
             logger.warn("Unexpected error, Url: {} is redirected to NOTHING", curUrl);
             return;
         }
-        page.setRedirectedToUrl(movedToUrl);
-        visitor.onRedirectedStatusCode(page);
+        WebTarget webUrl = new WebTargetBuilder(movedToUrl).build();
+        webUrl.setParentDocid(curUrl.getParentDocid());
+        webUrl.setParentUrl(curUrl.getParentUrl());
+        webUrl.setDepth(curUrl.getDepth());
+        webUrl.setDocid(-1);
+        webUrl.setAnchor(curUrl.getAnchor());
 
-        handleRedirects(page, curUrl, movedToUrl);
+        page.setRedirectedToUrl(webUrl);
+        visitor.onRedirectedStatusCode(page);
     }
 
     private void handleSuccess(Page page, PageFetchResult fetchResult, WebTarget curUrl)
@@ -188,30 +187,17 @@ public class PageProcessor {
         }
     }
 
-    private void handleRedirects(Page page, WebTarget curUrl, String movedToUrl) {
-        if (config.isFollowRedirects()) {
-            // int newDocId = docIdServer.getDocId(movedToUrl);
-            if (frontier.isSeenBefore(movedToUrl)) {
-                logger.debug("Redirect page: {} is already seen", curUrl);
-                return;
-            }
-
-            WebTarget webUrl = new WebTarget();
-            webUrl.setUrl(movedToUrl);
-            webUrl.setParentDocid(curUrl.getParentDocid());
-            webUrl.setParentUrl(curUrl.getParentUrl());
-            webUrl.setDepth(curUrl.getDepth());
-            webUrl.setDocid(-1);
-            webUrl.setAnchor(curUrl.getAnchor());
-            if (visitor.shouldVisit(page, webUrl)) {
-                // webUrl.setDocid(docIdServer.getNewDocID(movedToUrl));
-                schedule(webUrl);
+    private WebTarget handleRedirects(Page page) {
+        if (page.getRedirectedToUrl() != null && config.isFollowRedirects()) {
+            if (visitor.shouldVisit(page, page.getRedirectedToUrl())) {
+                return page.getRedirectedToUrl();
             }
             else {
                 logger.debug("Not visiting: {} as per your \"shouldVisit\" policy",
-                    webUrl.getUrl());
+                    page.getRedirectedToUrl().getUrl());
             }
         }
+        return null;
     }
 
     private List<WebTarget> processParsedLinks(Page page) {

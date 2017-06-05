@@ -17,6 +17,8 @@
  */
 package org.ops4j.krabbl.core;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
 import org.ops4j.krabbl.api.Page;
@@ -36,9 +38,15 @@ public class CrawlerTest {
 
     public static class TestVisitor implements PageVisitor {
 
+        private String domain;
+
+        public TestVisitor(String domain) {
+            this.domain = domain;
+        }
+
         @Override
         public boolean shouldVisit(Page referringPage, WebTarget url) {
-            return url.getUrl().contains("ops4j.github.io");
+            return url.getDomain().equals(domain);
         }
 
         @Override
@@ -47,17 +55,41 @@ public class CrawlerTest {
             if (page.getParseData() != null) {
                 numLinks = page.getParseData().getOutgoingUrls().size();
             }
-            log.info("Visiting {} at depth {} with {} outgoing links",
-                page.getWebTarget().getUrl(), page.getWebTarget().getDepth(), numLinks);
+            log.info("Visiting {} at depth {} with {} outgoing links", page.getWebTarget().getUrl(),
+                page.getWebTarget().getDepth(), numLinks);
         }
     }
 
     @Test
-    public void shouldCrawlSabio() {
+    public void shouldCrawlOps4j() {
         CrawlerConfiguration config = new CrawlerConfiguration();
         config.setMaxDepthOfCrawling(2);
-        DefaultCrawler crawlController = new DefaultCrawler(config, new TestVisitor());
+        DefaultCrawler crawlController = new DefaultCrawler(config,
+            new TestVisitor("ops4j.github.io"));
         crawlController.addSeed("http://ops4j.github.io");
+        crawlController.start();
+        crawlController.waitUntilFinish();
+    }
+
+    @Test
+    public void shouldCrawlGithub() throws InterruptedException {
+        CrawlerConfiguration config = new CrawlerConfiguration();
+        config.setMaxDepthOfCrawling(2);
+        DefaultCrawler crawlController = new DefaultCrawler(config, new TestVisitor("github.com"));
+        crawlController.addSeed("http://github.com");
+        crawlController.start();
+        TimeUnit.SECONDS.sleep(5);
+        crawlController.shutdown();
+        crawlController.waitUntilFinish();
+    }
+
+    @Test
+    public void shouldHandleMetaRefresh() {
+        CrawlerConfiguration config = new CrawlerConfiguration();
+        config.setMaxDepthOfCrawling(2);
+        DefaultCrawler crawlController = new DefaultCrawler(config,
+            new TestVisitor("ops4j.github.io"));
+        crawlController.addSeed("http://ops4j.github.io/dadl/latest/");
         crawlController.start();
         crawlController.waitUntilFinish();
     }
