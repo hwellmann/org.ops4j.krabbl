@@ -38,7 +38,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.ops4j.krabbl.api.CrawlerConfiguration;
+import org.ops4j.krabbl.api.HttpClientConfiguration;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.exc.PageBiggerThanMaxSizeException;
 import org.ops4j.krabbl.core.url.UrlCanonicalizer;
@@ -54,9 +54,9 @@ public class PageFetcher {
     protected PoolingHttpClientConnectionManager connectionManager;
     protected CloseableHttpClient httpClient;
     protected long lastFetchTime = 0;
-    private CrawlerConfiguration config;
+    private HttpClientConfiguration config;
 
-    public PageFetcher(CrawlerConfiguration config) {
+    public PageFetcher(HttpClientConfiguration config) {
         this.config = config;
         RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(false)
             .setCookieSpec(CookieSpecs.STANDARD)
@@ -65,10 +65,7 @@ public class PageFetcher {
 
         RegistryBuilder<ConnectionSocketFactory> connRegistryBuilder = RegistryBuilder.create();
         connRegistryBuilder.register("http", PlainConnectionSocketFactory.INSTANCE);
-        if (config.isIncludeHttpsPages()) {
-            connRegistryBuilder.register("https",
-                SSLConnectionSocketFactory.getSystemSocketFactory());
-        }
+        connRegistryBuilder.register("https", SSLConnectionSocketFactory.getSystemSocketFactory());
 
         Registry<ConnectionSocketFactory> connRegistry = connRegistryBuilder.build();
         connectionManager = new PoolingHttpClientConnectionManager(connRegistry);

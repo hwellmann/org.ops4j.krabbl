@@ -24,7 +24,4 @@ public interface ParseData {
     Set<WebTarget> getOutgoingUrls();
 
     void setOutgoingUrls(Set<WebTarget> outgoingUrls);
-
-    @Override
-    String toString();
 }

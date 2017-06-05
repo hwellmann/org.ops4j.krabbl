@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -59,11 +58,15 @@ public class DefaultCrawler implements Crawler {
 
     private BlockingQueue<CompletableFuture<Page>> queue = new LinkedBlockingQueue<>();
 
-    public DefaultCrawler(CrawlerConfiguration config, PageVisitor visitor) {
-        this.executor = Executors.newScheduledThreadPool(2);
-        this.frontier = new InMemoryFrontier();
+    private CrawlerConfiguration config;
+
+    public DefaultCrawler(CrawlerConfiguration config, PageVisitor visitor,
+        ScheduledExecutorService executor, Frontier frontier, PageProcessor pageProcessor) {
+        this.config = config;
+        this.executor = executor;
+        this.frontier = frontier;
         this.seeds = new ArrayList<>();
-        this.pageProcessor = new PageProcessor(config, visitor, frontier);
+        this.pageProcessor = pageProcessor;
     }
 
     @Override
@@ -122,17 +125,31 @@ public class DefaultCrawler implements Crawler {
     }
 
     private void processAndWaitForPage(CompletableFuture<Page> futurePage) {
-        futurePage.thenApply(pageProcessor::handleOutgoingLinks).thenApply(this::schedule).join();
+        futurePage.thenApply(pageProcessor::handleOutgoingLinks).thenAccept(this::schedule).join();
         logger.info("processed {} pages of {} total", frontier.getNumberOfProcessedPages(),
             frontier.getNumberOfScheduledPages());
     }
 
-    public List<CompletableFuture<Page>> schedule(List<WebTarget> targets) {
-        List<CompletableFuture<Page>> pages = targets.stream().map(this::asyncLoad)
-            .collect(toList());
-        frontier.schedule(targets);
-        queue.addAll(pages);
-        return pages;
+    public void schedule(List<WebTarget> targets) {
+        List<WebTarget> newTargets = truncateToMax(targets);
+        if (!newTargets.isEmpty()) {
+            List<CompletableFuture<Page>> pages = newTargets.stream().map(this::asyncLoad)
+                .collect(toList());
+            frontier.schedule(newTargets);
+            queue.addAll(pages);
+        }
+    }
+
+    private List<WebTarget> truncateToMax(List<WebTarget> targets) {
+        List<WebTarget> newTargets = targets;
+        int max = config.getMaxPagesToFetch();
+        if (max >= 0) {
+            max = config.getMaxPagesToFetch() - (int) frontier.getNumberOfScheduledPages();
+        }
+        if (newTargets.size() > max) {
+            newTargets = newTargets.subList(0, max);
+        }
+        return newTargets;
     }
 
     private CompletableFuture<Page> asyncLoad(WebTarget target) {

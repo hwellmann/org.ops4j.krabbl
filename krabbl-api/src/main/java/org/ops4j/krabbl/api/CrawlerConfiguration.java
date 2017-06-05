@@ -17,12 +17,6 @@
 
 package org.ops4j.krabbl.api;
 
-import java.util.Collection;
-import java.util.HashSet;
-
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
-
 public class CrawlerConfiguration {
 
     /**
@@ -36,17 +30,6 @@ public class CrawlerConfiguration {
      * parameter should be set to -1
      */
     private int maxPagesToFetch = -1;
-
-    /**
-     * user-agent string that is used for representing your crawler to web
-     * servers. See http://en.wikipedia.org/wiki/User_agent for more details
-     */
-    private String userAgentString = "krabbl (https://github.com/hwellmann/org.ops4j.krabbl/)";
-
-    /**
-     * Default request header values.
-     */
-    private Collection<BasicHeader> defaultHeaders = new HashSet<BasicHeader>();
 
     /**
      * Politeness delay in milliseconds (delay between sending two requests to
@@ -65,26 +48,6 @@ public class CrawlerConfiguration {
     private boolean includeBinaryContentInCrawling = false;
 
     /**
-     * Maximum Connections per host
-     */
-    private int maxConnectionsPerHost = 100;
-
-    /**
-     * Maximum total connections
-     */
-    private int maxTotalConnections = 100;
-
-    /**
-     * Socket timeout in milliseconds
-     */
-    private int socketTimeout = 20000;
-
-    /**
-     * Connection timeout in milliseconds
-     */
-    private int connectionTimeout = 30000;
-
-    /**
      * Max number of outgoing links which are processed from a page
      */
     private int maxOutgoingLinksToFollow = 5000;
@@ -99,39 +62,6 @@ public class CrawlerConfiguration {
      * Should we follow redirects?
      */
     private boolean followRedirects = true;
-
-    /**
-     * Should the TLD list be updated automatically on each run? Alternatively,
-     * it can be loaded from the embedded tld-names.zip file that was obtained from
-     * https://publicsuffix.org/list/effective_tld_names.dat
-     */
-    private boolean onlineTldListUpdate = false;
-
-    /**
-     * If crawler should run behind a proxy, this parameter can be used for
-     * specifying the proxy host.
-     */
-    private String proxyHost = null;
-
-    /**
-     * If crawler should run behind a proxy, this parameter can be used for
-     * specifying the proxy port.
-     */
-    private int proxyPort = 80;
-
-    /**
-     * If crawler should run behind a proxy and user/pass is needed for
-     * authentication in proxy, this parameter can be used for specifying the
-     * username.
-     */
-    private String proxyUsername = null;
-
-    /**
-     * If crawler should run behind a proxy and user/pass is needed for
-     * authentication in proxy, this parameter can be used for specifying the
-     * password.
-     */
-    private String proxyPassword = null;
 
     /**
      * Whether to honor "nofollow" flag
@@ -189,57 +119,6 @@ public class CrawlerConfiguration {
         this.maxPagesToFetch = maxPagesToFetch;
     }
 
-    /**
-     *
-     * @return userAgentString
-     */
-    public String getUserAgentString() {
-        return userAgentString;
-    }
-
-    /**
-     * user-agent string that is used for representing your crawler to web
-     * servers. See http://en.wikipedia.org/wiki/User_agent for more details
-     *
-     * @param userAgentString Custom userAgent string to use as your crawler's identifier
-     */
-    public void setUserAgentString(String userAgentString) {
-        this.userAgentString = userAgentString;
-    }
-
-    /**
-     * Return a copy of the default header collection.
-     */
-    public Collection<BasicHeader> getDefaultHeaders() {
-        return new HashSet<>(defaultHeaders);
-    }
-
-    /**
-     * Set the default header collection (creating copies of the provided headers).
-     */
-    public void setDefaultHeaders(Collection<? extends Header> defaultHeaders) {
-        Collection<BasicHeader> copiedHeaders = new HashSet<>();
-        for (Header header : defaultHeaders) {
-            copiedHeaders.add(new BasicHeader(header.getName(), header.getValue()));
-        }
-        this.defaultHeaders = copiedHeaders;
-    }
-
-    public int getPolitenessDelay() {
-        return politenessDelay;
-    }
-
-    /**
-     * Politeness delay in milliseconds (delay between sending two requests to
-     * the same host).
-     *
-     * @param politenessDelay
-     *            the delay in milliseconds.
-     */
-    public void setPolitenessDelay(int politenessDelay) {
-        this.politenessDelay = politenessDelay;
-    }
-
     public boolean isIncludeHttpsPages() {
         return includeHttpsPages;
     }
@@ -262,50 +141,6 @@ public class CrawlerConfiguration {
      */
     public void setIncludeBinaryContentInCrawling(boolean includeBinaryContentInCrawling) {
         this.includeBinaryContentInCrawling = includeBinaryContentInCrawling;
-    }
-
-    public int getMaxConnectionsPerHost() {
-        return maxConnectionsPerHost;
-    }
-
-    /**
-     * @param maxConnectionsPerHost Maximum Connections per host
-     */
-    public void setMaxConnectionsPerHost(int maxConnectionsPerHost) {
-        this.maxConnectionsPerHost = maxConnectionsPerHost;
-    }
-
-    public int getMaxTotalConnections() {
-        return maxTotalConnections;
-    }
-
-    /**
-     * @param maxTotalConnections Maximum total connections
-     */
-    public void setMaxTotalConnections(int maxTotalConnections) {
-        this.maxTotalConnections = maxTotalConnections;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
-    }
-
-    /**
-     * @param socketTimeout Socket timeout in milliseconds
-     */
-    public void setSocketTimeout(int socketTimeout) {
-        this.socketTimeout = socketTimeout;
-    }
-
-    public int getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    /**
-     * @param connectionTimeout Connection timeout in milliseconds
-     */
-    public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
     }
 
     public int getMaxOutgoingLinksToFollow() {
@@ -342,70 +177,6 @@ public class CrawlerConfiguration {
         this.followRedirects = followRedirects;
     }
 
-    public boolean isOnlineTldListUpdate() {
-        return onlineTldListUpdate;
-    }
-
-    /**
-     * Should the TLD list be updated automatically on each run? Alternatively,
-     * it can be loaded from the embedded tld-names.txt resource file that was
-     * obtained from https://publicsuffix.org/list/effective_tld_names.dat
-     */
-    public void setOnlineTldListUpdate(boolean online) {
-        onlineTldListUpdate = online;
-    }
-
-    public String getProxyHost() {
-        return proxyHost;
-    }
-
-    /**
-     * @param proxyHost If crawler should run behind a proxy, this parameter can be used for
-     * specifying the proxy host.
-     */
-    public void setProxyHost(String proxyHost) {
-        this.proxyHost = proxyHost;
-    }
-
-    public int getProxyPort() {
-        return proxyPort;
-    }
-
-    /**
-     * @param proxyPort If crawler should run behind a proxy, this parameter can be used for
-     * specifying the proxy port.
-     */
-    public void setProxyPort(int proxyPort) {
-        this.proxyPort = proxyPort;
-    }
-
-    public String getProxyUsername() {
-        return proxyUsername;
-    }
-
-    /**
-     * @param proxyUsername
-     *        If crawler should run behind a proxy and user/pass is needed for
-     *        authentication in proxy, this parameter can be used for specifying the username.
-     */
-    public void setProxyUsername(String proxyUsername) {
-        this.proxyUsername = proxyUsername;
-    }
-
-    public String getProxyPassword() {
-        return proxyPassword;
-    }
-
-    /**
-     * If crawler should run behind a proxy and user/pass is needed for
-     * authentication in proxy, this parameter can be used for specifying the password.
-     *
-     * @param proxyPassword String Password
-     */
-    public void setProxyPassword(String proxyPassword) {
-        this.proxyPassword = proxyPassword;
-    }
-
     public boolean isRespectNoFollow() {
         return respectNoFollow;
     }
@@ -427,20 +198,11 @@ public class CrawlerConfiguration {
         StringBuilder sb = new StringBuilder();
         sb.append("Max depth of crawl: " + getMaxDepthOfCrawling() + "\n");
         sb.append("Max pages to fetch: " + getMaxPagesToFetch() + "\n");
-        sb.append("User agent string: " + getUserAgentString() + "\n");
         sb.append("Include https pages: " + isIncludeHttpsPages() + "\n");
         sb.append("Include binary content: " + isIncludeBinaryContentInCrawling() + "\n");
-        sb.append("Max connections per host: " + getMaxConnectionsPerHost() + "\n");
-        sb.append("Max total connections: " + getMaxTotalConnections() + "\n");
-        sb.append("Socket timeout: " + getSocketTimeout() + "\n");
-        sb.append("Max total connections: " + getMaxTotalConnections() + "\n");
         sb.append("Max outgoing links to follow: " + getMaxOutgoingLinksToFollow() + "\n");
         sb.append("Max download size: " + getMaxDownloadSize() + "\n");
         sb.append("Should follow redirects?: " + isFollowRedirects() + "\n");
-        sb.append("Proxy host: " + getProxyHost() + "\n");
-        sb.append("Proxy port: " + getProxyPort() + "\n");
-        sb.append("Proxy username: " + getProxyUsername() + "\n");
-        sb.append("Proxy password: " + getProxyPassword() + "\n");
         sb.append("Respect nofollow: " + isRespectNoFollow() + "\n");
         sb.append("Respect noindex: " + isRespectNoIndex() + "\n");
         return sb.toString();

@@ -62,12 +62,12 @@ public class PageProcessor {
     private RobotsControl robotsControl;
     private Parser parser;
 
-    public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier) {
+    public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier, PageFetcher pageFetcher) {
         this.config = config;
         this.visitor = visitor;
         this.frontier = frontier;
         this.parser = new JsoupHtmlParser();
-        this.pageFetcher = new PageFetcher(config);
+        this.pageFetcher = pageFetcher;
         this.robotsControl = new RobotsControl(new RobotsConfiguration(), pageFetcher);
     }
 
