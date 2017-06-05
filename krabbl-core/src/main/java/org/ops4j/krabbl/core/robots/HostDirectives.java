@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import org.ops4j.krabbl.api.RobotsConfiguration;
+
 /**
  * @author Yasser Ganjisaffar
  */

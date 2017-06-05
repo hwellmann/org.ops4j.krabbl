@@ -34,7 +34,7 @@ public class HttpClientConfiguration {
     /**
      * Default request header values.
      */
-    private Collection<BasicHeader> defaultHeaders = new HashSet<BasicHeader>();
+    private Collection<BasicHeader> defaultHeaders = new HashSet<>();
 
     /**
      * Politeness delay in milliseconds (delay between sending two requests to
@@ -72,7 +72,7 @@ public class HttpClientConfiguration {
      * If crawler should run behind a proxy, this parameter can be used for
      * specifying the proxy host.
      */
-    private String proxyHost = null;
+    private String proxyHost;
 
     /**
      * If crawler should run behind a proxy, this parameter can be used for
@@ -85,14 +85,14 @@ public class HttpClientConfiguration {
      * authentication in proxy, this parameter can be used for specifying the
      * username.
      */
-    private String proxyUsername = null;
+    private String proxyUsername;
 
     /**
      * If crawler should run behind a proxy and user/pass is needed for
      * authentication in proxy, this parameter can be used for specifying the
      * password.
      */
-    private String proxyPassword = null;
+    private String proxyPassword;
 
     /**
      * Validates the configs specified by this instance.
@@ -101,7 +101,7 @@ public class HttpClientConfiguration {
      */
     public void validate() throws Exception {
         if (politenessDelay < 0) {
-            throw new Exception("Invalid value for politeness delay: " + politenessDelay);
+            throw new IllegalArgumentException("Invalid value for politeness delay: " + politenessDelay);
         }
     }
 

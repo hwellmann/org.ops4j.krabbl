@@ -29,7 +29,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.ops4j.krabbl.api.Crawler;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
 import org.ops4j.krabbl.api.Page;
-import org.ops4j.krabbl.api.PageVisitor;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
@@ -44,13 +43,15 @@ public class DefaultCrawler implements Crawler {
 
     private static Logger logger = LoggerFactory.getLogger(DefaultCrawler.class);
 
-    private Frontier frontier;
+    private CrawlerConfiguration config;
 
     private ScheduledExecutorService executor;
 
-    private CompletableFuture<Void> future;
+    private Frontier frontier;
 
     private PageProcessor pageProcessor;
+
+    private CompletableFuture<Void> future;
 
     private List<WebTarget> seeds;
 
@@ -58,36 +59,39 @@ public class DefaultCrawler implements Crawler {
 
     private BlockingQueue<CompletableFuture<Page>> queue = new LinkedBlockingQueue<>();
 
-    private CrawlerConfiguration config;
-
-    public DefaultCrawler(CrawlerConfiguration config, PageVisitor visitor,
+    public DefaultCrawler(CrawlerConfiguration config,
         ScheduledExecutorService executor, Frontier frontier, PageProcessor pageProcessor) {
         this.config = config;
         this.executor = executor;
         this.frontier = frontier;
-        this.seeds = new ArrayList<>();
         this.pageProcessor = pageProcessor;
+        this.seeds = new ArrayList<>();
     }
 
     @Override
-    public void waitUntilFinish() {
-        future.join();
+    public void awaitTermination() {
+        if (future != null) {
+            future.join();
+        }
     }
 
     @Override
     public void addSeed(String pageUrl) {
+        if (future != null) {
+            throw new IllegalStateException("Cannot add seeds after crawling has started");
+        }
         WebTarget target = new WebTargetBuilder(pageUrl).build();
         target.setDepth(0);
         seeds.add(target);
     }
 
     @Override
-    public boolean isFinished() {
-        return future.isDone();
+    public boolean isTerminated() {
+        return future != null && future.isDone();
     }
 
     @Override
-    public boolean isShuttingDown() {
+    public boolean isShutdown() {
         return shuttingDown;
     }
 

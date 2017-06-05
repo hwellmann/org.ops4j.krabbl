@@ -35,7 +35,6 @@ import org.ops4j.krabbl.core.fetch.PageFetchResult;
 import org.ops4j.krabbl.core.fetch.PageFetcher;
 import org.ops4j.krabbl.core.parse.HtmlParseData;
 import org.ops4j.krabbl.core.parse.JsoupHtmlParser;
-import org.ops4j.krabbl.core.robots.RobotsConfiguration;
 import org.ops4j.krabbl.core.robots.RobotsControl;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.spi.Parser;
@@ -51,24 +50,24 @@ public class PageProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(PageProcessor.class);
 
+    private CrawlerConfiguration config;
+
     private PageVisitor visitor;
 
     private Frontier frontier;
-
-    private CrawlerConfiguration config;
 
     private PageFetcher pageFetcher;
 
     private RobotsControl robotsControl;
     private Parser parser;
 
-    public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier, PageFetcher pageFetcher) {
+    public PageProcessor(CrawlerConfiguration config, PageVisitor visitor, Frontier frontier, PageFetcher pageFetcher,
+        RobotsControl robotsControl) {
         this.config = config;
         this.visitor = visitor;
         this.frontier = frontier;
         this.parser = new JsoupHtmlParser();
         this.pageFetcher = pageFetcher;
-        this.robotsControl = new RobotsControl(new RobotsConfiguration(), pageFetcher);
     }
 
     public List<WebTarget> handleOutgoingLinks(Page page) {
@@ -153,10 +152,8 @@ public class PageProcessor {
             return;
         }
         WebTarget webUrl = new WebTargetBuilder(movedToUrl).build();
-        webUrl.setParentDocid(curUrl.getParentDocid());
         webUrl.setParentUrl(curUrl.getParentUrl());
         webUrl.setDepth(curUrl.getDepth());
-        webUrl.setDocid(-1);
         webUrl.setAnchor(curUrl.getAnchor());
 
         page.setRedirectedToUrl(webUrl);
@@ -171,7 +168,6 @@ public class PageProcessor {
                 return;
             }
             curUrl.setUrl(fetchResult.getFetchedUrl());
-            // curUrl.setDocid(docIdServer.getNewDocID(fetchResult.getFetchedUrl()));
         }
 
         if (!fetchResult.fetchContent(page, config.getMaxDownloadSize())) {
@@ -226,9 +222,7 @@ public class PageProcessor {
         List<WebTarget> toSchedule = new ArrayList<>();
         int maxCrawlDepth = config.getMaxDepthOfCrawling();
         for (WebTarget webUrl : parseData.getOutgoingUrls()) {
-            webUrl.setParentDocid(curUrl.getDocid());
             webUrl.setParentUrl(curUrl.getUrl());
-            // int newdocid = docIdServer.getDocId(webUrl.getUrl());
             if (frontier.isSeenBefore(webUrl.getUrl())) {
                 // This is not the first time that this Url is visited. So, we set the
                 // depth to a negative number.

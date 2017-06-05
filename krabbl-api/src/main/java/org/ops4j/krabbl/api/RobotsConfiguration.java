@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.ops4j.krabbl.core.robots;
+package org.ops4j.krabbl.api;
 
 public class RobotsConfiguration {
 

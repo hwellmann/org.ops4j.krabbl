@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.ops4j.krabbl.api.Page;
+import org.ops4j.krabbl.api.RobotsConfiguration;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.exc.PageBiggerThanMaxSizeException;
 import org.ops4j.krabbl.core.fetch.PageFetchResult;

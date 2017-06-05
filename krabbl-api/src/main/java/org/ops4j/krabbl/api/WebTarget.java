@@ -30,8 +30,6 @@ public class WebTarget implements Serializable {
 
     private String url;
 
-    private int docid;
-    private int parentDocid;
     private String parentUrl;
     private int depth;
     private String domain;
@@ -41,30 +39,6 @@ public class WebTarget implements Serializable {
     private int priority;
     private String tag;
     private Map<String, String> attributes;
-
-    /**
-     * @return unique document id assigned to this Url.
-     */
-    public int getDocid() {
-        return docid;
-    }
-
-    public void setDocid(int docid) {
-        this.docid = docid;
-    }
-
-    /**
-     * @return
-     *      unique document id of the parent page. The parent page is the
-     *      page in which the Url of this page is first observed.
-     */
-    public int getParentDocid() {
-        return parentDocid;
-    }
-
-    public void setParentDocid(int parentDocid) {
-        this.parentDocid = parentDocid;
-    }
 
     /**
      * @return

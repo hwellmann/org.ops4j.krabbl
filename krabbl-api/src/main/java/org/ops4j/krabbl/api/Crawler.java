@@ -28,7 +28,7 @@ public interface Crawler {
     /**
      * Wait until this crawling session finishes.
      */
-    void waitUntilFinish();
+    void awaitTermination();
 
     /**
      * Adds a new seed URL. A seed URL is a URL that is fetched by the crawler
@@ -41,9 +41,9 @@ public interface Crawler {
 
     void start();
 
-    boolean isFinished();
+    boolean isTerminated();
 
-    boolean isShuttingDown();
+    boolean isShutdown();
 
     /**
      * Set the current crawling session set to 'shutdown'. Crawler threads

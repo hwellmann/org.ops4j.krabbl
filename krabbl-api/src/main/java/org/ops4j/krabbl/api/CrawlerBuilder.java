@@ -32,17 +32,18 @@ public abstract class CrawlerBuilder {
 
     public abstract void setHttpClientConfiguration(HttpClientConfiguration httpClientConfiguration);
 
+    public abstract void setRobotsConfiguration(RobotsConfiguration robotsConfiguration);
+
     public abstract Crawler newCrawler(CrawlerConfiguration config, PageVisitor pageVisitor);
 
     public abstract int getPriority();
 
     public static CrawlerBuilder builder() {
-        ServiceLoader<CrawlerBuilder> loader = ServiceLoader.load(CrawlerBuilder.class);
-        int prio = 0;
+        int maxPriority = 0;
         CrawlerBuilder preferred = null;
-        for (CrawlerBuilder builder : loader) {
-            if (builder.getPriority() > prio) {
-                prio = builder.getPriority();
+        for (CrawlerBuilder builder : ServiceLoader.load(CrawlerBuilder.class)) {
+            if (builder.getPriority() > maxPriority) {
+                maxPriority = builder.getPriority();
                 preferred = builder;
             }
         }
@@ -51,5 +52,4 @@ public abstract class CrawlerBuilder {
         }
         return preferred;
     }
-
 }

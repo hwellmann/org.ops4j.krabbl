@@ -25,7 +25,9 @@ import org.ops4j.krabbl.api.CrawlerBuilder;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
 import org.ops4j.krabbl.api.HttpClientConfiguration;
 import org.ops4j.krabbl.api.PageVisitor;
+import org.ops4j.krabbl.api.RobotsConfiguration;
 import org.ops4j.krabbl.core.fetch.PageFetcher;
+import org.ops4j.krabbl.core.robots.RobotsControl;
 
 /**
  * @author Harald Wellmann
@@ -34,6 +36,8 @@ import org.ops4j.krabbl.core.fetch.PageFetcher;
 public class DefaultCrawlerBuilder extends CrawlerBuilder  {
 
     private HttpClientConfiguration httpClientConfiguration;
+
+    private RobotsConfiguration robotsConfiguration;
 
     private ScheduledExecutorService executor;
 
@@ -51,6 +55,30 @@ public class DefaultCrawlerBuilder extends CrawlerBuilder  {
         this.executor = executor;
     }
 
+    @Override
+    public void setHttpClientConfiguration(HttpClientConfiguration httpClientConfiguration) {
+        this.httpClientConfiguration = httpClientConfiguration;
+    }
+
+    @Override
+    public void setRobotsConfiguration(RobotsConfiguration robotsConfiguration) {
+        this.robotsConfiguration = robotsConfiguration;
+    }
+
+    @Override
+    public Crawler newCrawler(CrawlerConfiguration config, PageVisitor pageVisitor) {
+        RobotsControl robotsControl = new RobotsControl(getRobotsConfiguration(), getPageFetcher());
+        InMemoryFrontier frontier = new InMemoryFrontier();
+        PageProcessor pageProcessor = new PageProcessor(config, pageVisitor, frontier,
+            getPageFetcher(), robotsControl);
+        return new DefaultCrawler(config, getExecutor(), frontier, pageProcessor);
+    }
+
+    @Override
+    public int getPriority() {
+        return DEFAULT_PRIORITY;
+    }
+
     private synchronized HttpClientConfiguration getHttpClientConfiguration() {
         if (httpClientConfiguration == null) {
             httpClientConfiguration = new HttpClientConfiguration();
@@ -58,28 +86,17 @@ public class DefaultCrawlerBuilder extends CrawlerBuilder  {
         return httpClientConfiguration;
     }
 
-    @Override
-    public void setHttpClientConfiguration(HttpClientConfiguration httpClientConfiguration) {
-        this.httpClientConfiguration = httpClientConfiguration;
+    private synchronized RobotsConfiguration getRobotsConfiguration() {
+        if (robotsConfiguration == null) {
+            robotsConfiguration = new RobotsConfiguration();
+        }
+        return robotsConfiguration;
     }
 
-    private synchronized PageFetcher pageFetcher() {
+    private synchronized PageFetcher getPageFetcher() {
         if (pageFetcher == null) {
             pageFetcher = new PageFetcher(getHttpClientConfiguration());
         }
         return pageFetcher;
-    }
-
-    @Override
-    public Crawler newCrawler(CrawlerConfiguration config, PageVisitor pageVisitor) {
-        InMemoryFrontier frontier = new InMemoryFrontier();
-        PageProcessor pageProcessor = new PageProcessor(config, pageVisitor, frontier,
-            pageFetcher());
-        return new DefaultCrawler(config, pageVisitor, getExecutor(), frontier, pageProcessor);
-    }
-
-    @Override
-    public int getPriority() {
-        return DEFAULT_PRIORITY;
     }
 }
