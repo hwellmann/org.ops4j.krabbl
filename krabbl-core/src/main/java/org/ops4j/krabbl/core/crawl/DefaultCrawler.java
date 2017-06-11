@@ -30,9 +30,9 @@ import org.ops4j.krabbl.api.Crawler;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
 import org.ops4j.krabbl.api.Page;
 import org.ops4j.krabbl.api.PageVisitor;
-import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
+import org.ops4j.krabbl.core.url.WebTargetImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public class DefaultCrawler implements Crawler {
 
     private CompletableFuture<Void> future;
 
-    private List<WebTarget> seeds;
+    private List<WebTargetImpl> seeds;
 
     private boolean shuttingDown;
 
@@ -84,7 +84,7 @@ public class DefaultCrawler implements Crawler {
         if (future != null) {
             throw new IllegalStateException("Cannot add seeds after crawling has started");
         }
-        WebTarget target = new WebTargetBuilder(pageUrl).build();
+        WebTargetImpl target = new WebTargetBuilder(pageUrl).build();
         target.setDepth(0);
         seeds.add(target);
     }
@@ -140,8 +140,8 @@ public class DefaultCrawler implements Crawler {
             frontier.getNumberOfScheduledPages());
     }
 
-    public void schedule(List<WebTarget> targets) {
-        List<WebTarget> newTargets = truncateToMax(targets);
+    public void schedule(List<WebTargetImpl> targets) {
+        List<WebTargetImpl> newTargets = truncateToMax(targets);
         if (!newTargets.isEmpty()) {
             List<CompletableFuture<Page>> pages = newTargets.stream().map(this::asyncLoad)
                 .collect(toList());
@@ -150,8 +150,8 @@ public class DefaultCrawler implements Crawler {
         }
     }
 
-    private List<WebTarget> truncateToMax(List<WebTarget> targets) {
-        List<WebTarget> newTargets = targets;
+    private List<WebTargetImpl> truncateToMax(List<WebTargetImpl> targets) {
+        List<WebTargetImpl> newTargets = targets;
         int max = config.getMaxPagesToFetch();
         if (max >= 0) {
             max = config.getMaxPagesToFetch() - (int) frontier.getNumberOfScheduledPages();
@@ -162,7 +162,7 @@ public class DefaultCrawler implements Crawler {
         return newTargets;
     }
 
-    private CompletableFuture<Page> asyncLoad(WebTarget target) {
+    private CompletableFuture<Page> asyncLoad(WebTargetImpl target) {
         return CompletableFuture.supplyAsync(() -> pageProcessor.processPage(target), executor);
     }
 }

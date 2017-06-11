@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
+import org.ops4j.krabbl.core.url.WebTargetImpl;
 
 /**
  * @author Harald Wellmann
@@ -72,12 +73,12 @@ public class InMemoryFrontier implements Frontier {
     }
 
     @Override
-    public void schedule(WebTarget url) {
+    public void schedule(WebTargetImpl url) {
         pageMap.put(url, PageStatus.SCHEDULED);
     }
 
     @Override
-    public void schedule(List<WebTarget> urls) {
+    public void schedule(List<WebTargetImpl> urls) {
         urls.forEach(this::schedule);
     }
 

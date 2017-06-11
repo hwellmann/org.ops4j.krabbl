@@ -33,6 +33,7 @@ import org.ops4j.krabbl.core.fetch.PageFetchResult;
 import org.ops4j.krabbl.core.fetch.PageFetcher;
 import org.ops4j.krabbl.core.url.ContentTypeUtil;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
+import org.ops4j.krabbl.core.url.WebTargetImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +95,7 @@ public class RobotsControl {
         String port = ((url.getPort() == url.getDefaultPort()) || (url.getPort() == -1)) ? ""
             : (":" + url.getPort());
         String proto = url.getProtocol();
-        WebTarget robotsTxtUrl = new WebTargetBuilder(proto + "://" + host + port + "/robots.txt")
+        WebTargetImpl robotsTxtUrl = new WebTargetBuilder(proto + "://" + host + port + "/robots.txt")
             .build();
         HostDirectives directives = null;
         PageFetchResult fetchResult = null;

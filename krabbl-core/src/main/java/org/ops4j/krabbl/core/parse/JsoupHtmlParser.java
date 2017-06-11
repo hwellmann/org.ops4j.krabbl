@@ -31,6 +31,7 @@ import org.ops4j.krabbl.core.exc.ParseException;
 import org.ops4j.krabbl.core.spi.Parser;
 import org.ops4j.krabbl.core.url.UrlNormalizer;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
+import org.ops4j.krabbl.core.url.WebTargetImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +122,7 @@ public class JsoupHtmlParser implements Parser {
     }
 
     private WebTarget buildWebTarget(String outgoing, WebTarget parent) {
-        WebTarget webTarget = new WebTargetBuilder(outgoing).build();
+        WebTargetImpl webTarget = new WebTargetBuilder(outgoing).build();
         webTarget.setUrl(outgoing);
         webTarget.setReferringUrl(parent.getUrl());
         webTarget.setDepth(parent.getDepth() + 1);

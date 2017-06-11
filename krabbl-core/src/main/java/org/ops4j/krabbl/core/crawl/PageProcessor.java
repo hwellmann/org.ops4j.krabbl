@@ -39,6 +39,7 @@ import org.ops4j.krabbl.core.robots.RobotsControl;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.spi.Parser;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
+import org.ops4j.krabbl.core.url.WebTargetImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,11 +72,11 @@ public class PageProcessor {
         this.robotsControl = robotsControl;
     }
 
-    public List<WebTarget> handleOutgoingLinks(Page page) {
+    public List<WebTargetImpl> handleOutgoingLinks(Page page) {
         if (page == null) {
             return Collections.emptyList();
         }
-        WebTarget redirectedTo = handleRedirects(page);
+        WebTargetImpl redirectedTo = handleRedirects(page);
         if (redirectedTo != null) {
             return Collections.singletonList(redirectedTo);
         }
@@ -86,7 +87,7 @@ public class PageProcessor {
         return processParsedLinks(page);
     }
 
-    public Page processPage(WebTarget target) {
+    public Page processPage(WebTargetImpl target) {
         if (target == null) {
             return null;
         }
@@ -134,14 +135,11 @@ public class PageProcessor {
     }
 
     private void handleUnexpectedStatus(PageFetchResult fetchResult, WebTarget curUrl) {
-        String description = EnglishReasonPhraseCatalog.INSTANCE
-            .getReason(fetchResult.getStatusCode(), Locale.ENGLISH); // Finds
         // the status reason for all known statuses
         String contentType = fetchResult.getEntity() == null ? ""
             : fetchResult.getEntity().getContentType() == null ? ""
                 : fetchResult.getEntity().getContentType().getValue();
-        visitor.onUnexpectedStatusCode(curUrl.getUrl(), fetchResult.getStatusCode(), contentType,
-            description);
+        visitor.onUnexpectedStatusCode(curUrl.getUrl(), fetchResult.getStatusCode(), contentType);
     }
 
     private void handleRedirect(Page page, PageFetchResult fetchResult, WebTarget curUrl) {
@@ -152,7 +150,7 @@ public class PageProcessor {
             logger.warn("Unexpected error, Url: {} is redirected to NOTHING", curUrl);
             return;
         }
-        WebTarget webUrl = new WebTargetBuilder(movedToUrl).build();
+        WebTargetImpl webUrl = new WebTargetBuilder(movedToUrl).build();
         webUrl.setReferringUrl(curUrl.getReferringUrl());
         webUrl.setDepth(curUrl.getDepth());
 
@@ -160,7 +158,7 @@ public class PageProcessor {
         visitor.onRedirectedStatusCode(page);
     }
 
-    private void handleSuccess(Page page, PageFetchResult fetchResult, WebTarget curUrl)
+    private void handleSuccess(Page page, PageFetchResult fetchResult, WebTargetImpl curUrl)
         throws ContentFetchException {
         if (!curUrl.getUrl().equals(fetchResult.getFetchedUrl())) {
             if (frontier.isSeenBefore(fetchResult.getFetchedUrl())) {
@@ -175,8 +173,7 @@ public class PageProcessor {
         }
 
         if (page.isTruncated()) {
-            logger.warn(
-                "Warning: unknown page size exceeded max-download-size, truncated to: ({}), at Url: {}",
+            logger.warn("page size exceeded maxDownloadSize, truncated to {} bytes, at URL {}",
                 config.getMaxDownloadSize(), curUrl.getUrl());
         }
 
@@ -187,13 +184,13 @@ public class PageProcessor {
         }
     }
 
-    private WebTarget handleRedirects(Page page) {
+    private WebTargetImpl handleRedirects(Page page) {
         if (page.getRedirectedToUrl() != null && config.isFollowRedirects()) {
             if (visitor.shouldVisit(page, page.getRedirectedToUrl())) {
 
                 WebTarget currentTarget = page.getWebTarget();
                 if (!visitor.shouldFollowLinksIn(currentTarget) || robotsControl.allows(currentTarget)) {
-                    return page.getRedirectedToUrl();
+                    return (WebTargetImpl) page.getRedirectedToUrl();
                 } else {
                     logger.debug(
                         "Not visiting: {} as per the server's \"robots.txt\" policy",
@@ -210,7 +207,7 @@ public class PageProcessor {
         return null;
     }
 
-    private List<WebTarget> processParsedLinks(Page page) {
+    private List<WebTargetImpl> processParsedLinks(Page page) {
         WebTarget curUrl = page.getWebTarget();
         if (!visitor.shouldFollowLinksIn(page.getWebTarget())) {
             logger.debug("Not looking for links in page {}, "
@@ -219,9 +216,10 @@ public class PageProcessor {
         }
 
         ParseData parseData = page.getParseData();
-        List<WebTarget> toSchedule = new ArrayList<>();
+        List<WebTargetImpl> toSchedule = new ArrayList<>();
         int maxCrawlDepth = config.getMaxDepthOfCrawling();
-        for (WebTarget webUrl : parseData.getOutgoingUrls()) {
+        for (WebTarget target : parseData.getOutgoingUrls()) {
+            WebTargetImpl webUrl = (WebTargetImpl) target;
             webUrl.setReferringUrl(curUrl.getUrl());
             if (frontier.isSeenBefore(webUrl.getUrl())) {
                 // This is not the first time that this Url is visited. So, we set the

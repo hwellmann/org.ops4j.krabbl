@@ -18,70 +18,94 @@
 package org.ops4j.krabbl.api;
 
 /**
+ * A page visitor receives information about pages visited by a crawler. Clients creating a crawler
+ * need to provide a page visitor to get any feedback from the crawling session.
+ * <p>
+ * Implementations of this interface are required to be thread-safe.
+ *
  * @author Harald Wellmann
  *
  */
 public interface PageVisitor {
 
+    /**
+     * Called after the crawler has started, just before visiting the first seed.
+     */
     default void onStart() {
-
+        // empty
     }
 
+    /**
+     * Called just before the crawler terminates. No more pages will be visited after this point.
+     */
     default void onBeforeExit() {
-
+        // empty
     }
 
-    default boolean shouldVisit(Page referringPage, WebTarget url) {
+    /**
+     * Called just before visiting a given web target. The implementation may return false to skip
+     * loading and visiting the given target. The default implementation always returns true.
+     *
+     * @param referringPage
+     *            Referring page on which the given target was found. This is null for seed targets.
+     * @param target
+     *            target to be visited
+     * @return true if the target should be visited.
+     */
+    default boolean shouldVisit(Page referringPage, WebTarget target) {
         return true;
     }
 
-    default void visit(Page page) {
-
-    }
-
     /**
-     * This function is called if the content of a url is bigger than allowed size.
-     *
-     * @param urlStr
-     *            - The URL which it's content is bigger than allowed size
-     */
-    default void onPageBiggerThanMaxSize(String urlStr, long pageSize) {
-    }
-
-    /**
-     * This function is called if the crawler encounters a page with a 3xx status code
+     * Called when visiting a given web target. The target has been loaded and parsed.
      *
      * @param page
-     *            Partial page object
+     */
+    default void visit(Page page) {
+        // empty
+    }
+
+    /**
+     * Called when the content length of the given URL exceeds the allowed maximum.
+     *
+     * @param url
+     *            url with partial content
+     */
+    default void onPageBiggerThanMaxSize(String url, long pageSize) {
+        // empty
+    }
+
+    /**
+     * Called after loading a page with a 3xx HTTP status code.
+     *
+     * @param page partial page object with detail information
      */
     default void onRedirectedStatusCode(Page page) {
-        // Subclasses can override this to add their custom functionality
+        // empty
     }
 
     /**
-     * This function is called if the crawler encountered an unexpected http status code ( a status
-     * code other than 3xx)
+     * Called after loading a page with an unexpected HTTP status code of 400 or higher.
      *
-     * @param urlStr
-     *            URL in which an unexpected error was encountered while crawling
+     * @param url
+     *            URL that responded with error code
      * @param statusCode
-     *            Html StatusCode
+     *            HTTP status code
      * @param contentType
-     *            Type of Content
-     * @param description
-     *            Error Description
+     *            content type from response header
      */
-    default void onUnexpectedStatusCode(String urlStr, int statusCode, String contentType,
-        String description) {
+    default void onUnexpectedStatusCode(String url, int statusCode, String contentType) {
+        // empty
     }
 
     /**
-     * This function is called if the content of a url could not be fetched.
+     * Called when the content of the given target could not be fetched.
      *
-     * @param webUrl
-     *            URL which content failed to be fetched
+     * @param target
+     *            affected target
      */
-    default void onContentFetchError(WebTarget webUrl) {
+    default void onContentFetchError(WebTarget target) {
+        // empty
     }
 
     /**
@@ -91,6 +115,7 @@ public interface PageVisitor {
      *            URL where a unhandled exception occured
      */
     default void onUnhandledException(WebTarget webUrl, Throwable e) {
+        // empty
     }
 
     /**
@@ -100,6 +125,7 @@ public interface PageVisitor {
      *            URL which failed on parsing
      */
     default void onParseError(WebTarget webUrl) {
+        // empty
     }
 
     /**
@@ -115,8 +141,7 @@ public interface PageVisitor {
      *            Html Status COde description
      */
     default void handlePageStatusCode(WebTarget webUrl, int statusCode, String statusDescription) {
-        // Do nothing by default
-        // Sub-classed can override this to add their custom functionality
+        // empty
     }
 
     /**

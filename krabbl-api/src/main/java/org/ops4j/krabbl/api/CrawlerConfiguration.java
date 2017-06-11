@@ -17,23 +17,28 @@
  */
 package org.ops4j.krabbl.api;
 
+/**
+ * Configuration for a crawler. Only applies to a given crawler. Multiple crawlers with different
+ * configurations may be active at the same time.
+ *
+ * @author Harald Wellmann
+ *
+ */
 public class CrawlerConfiguration {
 
     /**
-     * Maximum depth of crawling For unlimited depth this parameter should be
-     * set to -1
+     * Maximum depth of crawling For unlimited depth this parameter should be set to -1
      */
     private int maxDepthOfCrawling = -1;
 
     /**
-     * Maximum number of pages to fetch For unlimited number of pages, this
-     * parameter should be set to -1
+     * Maximum number of pages to fetch For unlimited number of pages, this parameter should be set
+     * to -1
      */
     private int maxPagesToFetch = -1;
 
     /**
-     * Politeness delay in milliseconds (delay between sending two requests to
-     * the same host).
+     * Politeness delay in milliseconds (delay between sending two requests to the same host).
      */
     private int politenessDelay = 200;
 
@@ -53,8 +58,7 @@ public class CrawlerConfiguration {
     private int maxOutgoingLinksToFollow = 5000;
 
     /**
-     * Max allowed size of a page. Pages larger than this size will not be
-     * fetched.
+     * Max allowed size of a page. Pages larger than this size will not be fetched.
      */
     private int maxDownloadSize = 1048576;
 
@@ -76,19 +80,20 @@ public class CrawlerConfiguration {
     /**
      * Validates the configs specified by this instance.
      *
-     * @throws Exception on Validation fail
+     * @throws Exception
+     *             on Validation fail
      */
-    public void validate() throws Exception {
+    public void validate() {
         if (politenessDelay < 0) {
-            throw new Exception("Invalid value for politeness delay: " + politenessDelay);
+            throw new IllegalArgumentException("Invalid value for politeness delay: " + politenessDelay);
         }
         if (maxDepthOfCrawling < -1) {
-            throw new Exception(
-                "Maximum crawl depth should be either a positive number or -1 for unlimited depth" +
-                ".");
+            throw new IllegalArgumentException(
+                "Maximum crawl depth should be either a positive number or -1 for unlimited depth"
+                    + ".");
         }
         if (maxDepthOfCrawling > Short.MAX_VALUE) {
-            throw new Exception("Maximum value for crawl depth is " + Short.MAX_VALUE);
+            throw new IllegalArgumentException("Maximum value for crawl depth is " + Short.MAX_VALUE);
         }
     }
 
@@ -99,7 +104,8 @@ public class CrawlerConfiguration {
     /**
      * Maximum depth of crawling For unlimited depth this parameter should be set to -1
      *
-     * @param maxDepthOfCrawling Depth of crawling (all links on current page = depth of 1)
+     * @param maxDepthOfCrawling
+     *            Depth of crawling (all links on current page = depth of 1)
      */
     public void setMaxDepthOfCrawling(int maxDepthOfCrawling) {
         this.maxDepthOfCrawling = maxDepthOfCrawling;
@@ -110,10 +116,11 @@ public class CrawlerConfiguration {
     }
 
     /**
-     * Maximum number of pages to fetch For unlimited number of pages, this parameter should be
-     * set to -1
+     * Maximum number of pages to fetch For unlimited number of pages, this parameter should be set
+     * to -1
      *
-     * @param maxPagesToFetch How many pages to fetch from all threads together ?
+     * @param maxPagesToFetch
+     *            How many pages to fetch from all threads together ?
      */
     public void setMaxPagesToFetch(int maxPagesToFetch) {
         this.maxPagesToFetch = maxPagesToFetch;
@@ -124,7 +131,8 @@ public class CrawlerConfiguration {
     }
 
     /**
-     * @param includeHttpsPages Should we crawl https pages?
+     * @param includeHttpsPages
+     *            Should we crawl https pages?
      */
     public void setIncludeHttpsPages(boolean includeHttpsPages) {
         this.includeHttpsPages = includeHttpsPages;
@@ -136,8 +144,8 @@ public class CrawlerConfiguration {
 
     /**
      *
-     * @param includeBinaryContentInCrawling Should we fetch binary content such as images,
-     * audio, ...?
+     * @param includeBinaryContentInCrawling
+     *            Should we fetch binary content such as images, audio, ...?
      */
     public void setIncludeBinaryContentInCrawling(boolean includeBinaryContentInCrawling) {
         this.includeBinaryContentInCrawling = includeBinaryContentInCrawling;
@@ -148,7 +156,8 @@ public class CrawlerConfiguration {
     }
 
     /**
-     * @param maxOutgoingLinksToFollow Max number of outgoing links which are processed from a page
+     * @param maxOutgoingLinksToFollow
+     *            Max number of outgoing links which are processed from a page
      */
     public void setMaxOutgoingLinksToFollow(int maxOutgoingLinksToFollow) {
         this.maxOutgoingLinksToFollow = maxOutgoingLinksToFollow;
@@ -159,8 +168,8 @@ public class CrawlerConfiguration {
     }
 
     /**
-     * @param maxDownloadSize Max allowed size of a page. Pages larger than this size will not be
-     * fetched.
+     * @param maxDownloadSize
+     *            Max allowed size of a page. Pages larger than this size will not be fetched.
      */
     public void setMaxDownloadSize(int maxDownloadSize) {
         this.maxDownloadSize = maxDownloadSize;
@@ -171,7 +180,8 @@ public class CrawlerConfiguration {
     }
 
     /**
-     * @param followRedirects Should we follow redirects?
+     * @param followRedirects
+     *            Should we follow redirects?
      */
     public void setFollowRedirects(boolean followRedirects) {
         this.followRedirects = followRedirects;

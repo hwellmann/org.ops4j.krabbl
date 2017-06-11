@@ -20,6 +20,7 @@ package org.ops4j.krabbl.core.spi;
 import java.util.List;
 
 import org.ops4j.krabbl.api.WebTarget;
+import org.ops4j.krabbl.core.url.WebTargetImpl;
 
 /**
  * @author Yasser Ganjisaffar
@@ -27,8 +28,8 @@ import org.ops4j.krabbl.api.WebTarget;
 
 public interface Frontier {
 
-    void schedule(WebTarget url);
-    void schedule(List<WebTarget> url);
+    void schedule(WebTargetImpl url);
+    void schedule(List<WebTargetImpl> url);
 
     void setProcessed(WebTarget webURL);
     void setProcessing(WebTarget webURL);

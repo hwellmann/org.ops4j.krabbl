@@ -17,9 +17,9 @@
  */
 package org.ops4j.krabbl.core.url;
 
-import org.ops4j.krabbl.api.WebTarget;
-
 /**
+ * Builds a web target from a given URL. The URL of the resulting target will be normalized.
+ *
  * @author Harald Wellmann
  *
  */
@@ -27,11 +27,17 @@ public class WebTargetBuilder {
 
     private String url;
 
+    /**
+     * Creates a web target for the given URL.
+     *
+     * @param url
+     *            URL to be normalized
+     */
     public WebTargetBuilder(String url) {
         this.url = url;
     }
 
-    public WebTarget build() {
+    public WebTargetImpl build() {
         url = UrlNormalizer.normalize(url);
         int domainStartIdx = url.indexOf("//") + 2;
         int domainEndIdx = url.indexOf('/', domainStartIdx);
@@ -59,7 +65,7 @@ public class WebTargetBuilder {
             path = path.substring(0, pathEndIdx);
         }
 
-        WebTarget target = new WebTarget();
+        WebTargetImpl target = new WebTargetImpl();
         target.setUrl(url);
         target.setDomain(domain);
         target.setSubdomain(subDomain);
