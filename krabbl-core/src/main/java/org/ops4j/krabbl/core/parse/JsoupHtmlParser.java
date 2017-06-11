@@ -29,7 +29,7 @@ import org.ops4j.krabbl.api.Page;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.exc.ParseException;
 import org.ops4j.krabbl.core.spi.Parser;
-import org.ops4j.krabbl.core.url.UrlCanonicalizer;
+import org.ops4j.krabbl.core.url.UrlNormalizer;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,7 @@ public class JsoupHtmlParser implements Parser {
     }
 
     private void addToOutgoingUrls(Page page, String contextUrl, String relativeUrl) {
-        String outgoing = UrlCanonicalizer.getCanonicalURL(relativeUrl, contextUrl);
+        String outgoing = UrlNormalizer.normalize(relativeUrl, contextUrl);
         if (outgoing != null) {
             WebTarget target = buildWebTarget(outgoing, page.getWebTarget());
             page.getParseData().getOutgoingUrls().add(target);
@@ -123,7 +123,7 @@ public class JsoupHtmlParser implements Parser {
     private WebTarget buildWebTarget(String outgoing, WebTarget parent) {
         WebTarget webTarget = new WebTargetBuilder(outgoing).build();
         webTarget.setUrl(outgoing);
-        webTarget.setParentUrl(parent.getUrl());
+        webTarget.setReferringUrl(parent.getUrl());
         webTarget.setDepth(parent.getDepth() + 1);
         return webTarget;
     }

@@ -18,7 +18,6 @@
 package org.ops4j.krabbl.api;
 
 import java.io.Serializable;
-import java.util.Map;
 
 /**
  * @author Yasser Ganjisaffar
@@ -30,134 +29,133 @@ public class WebTarget implements Serializable {
 
     private String url;
 
-    private String parentUrl;
+    private String referringUrl;
     private int depth;
     private String domain;
-    private String subDomain;
+    private String subdomain;
     private String path;
-    private String anchor;
-    private int priority;
-    private String tag;
-    private Map<String, String> attributes;
 
     /**
-     * @return
-     *      url of the parent page. The parent page is the page in which
-     *      the Url of this page is first observed.
+     * Gets the URL of the first encountered page referring to this target.
+     *
+     * @return referring URL, or null if this target is a seed
      */
-    public String getParentUrl() {
-        return parentUrl;
-    }
-
-    public void setParentUrl(String parentUrl) {
-        this.parentUrl = parentUrl;
+    public String getReferringUrl() {
+        return referringUrl;
     }
 
     /**
-     * @return
-     *      crawl depth at which this Url is first observed. Seed Urls
-     *      are at depth 0. Urls that are extracted from seed Urls are at depth 1, etc.
+     * Sets the referring URL.
+     *
+     * @param referringUrl
+     */
+    public void setReferringUrl(String referringUrl) {
+        this.referringUrl = referringUrl;
+    }
+
+    /**
+     * Gets the depth at which this target is first encountered. Seeds have depth 0, URLs extracted
+     * from a seed have depth 1 etc.
+     *
+     * @return depth of this target
+     *
      */
     public int getDepth() {
         return depth;
     }
 
+    /**
+     * Sets the depth of this target.
+     *
+     * @param depth
+     *            depth
+     */
     public void setDepth(int depth) {
         this.depth = depth;
     }
 
     /**
-     * @return
-     *      domain of this Url. For 'http://www.example.com/sample.htm', domain will be 'example
-     *      .com'
+     * Gets the registered domain part of the host name of this URL. This part is computed with
+     * using the <a href="https://publicsuffix.org/">Public Suffix List</a>. The domain is composed
+     * of the public suffix and the name part preceding the suffix.
+     *
+     * @return domain of this URL, e.g. for {@code http://de.wikipedia.org}, the domain is
+     *         {@code wikipedia.org}.
      */
     public String getDomain() {
         return domain;
     }
 
-    public String getSubDomain() {
-        return subDomain;
+    /**
+     * Gets the subdomain part of the host name of this URL. This is the leading part of the host
+     * name of this target up to the domain part and not including the dot separator. The result can
+     * be empty, but never null.
+     *
+     * @return subdomain of this URL, e.g. for {@code http://de.wikipedia.org}, the domain is
+     *         {@code de}.
+     */
+    public String getSubdomain() {
+        return subdomain;
     }
 
+    /**
+     * Gets the normalized URL of this target. The
+     * <a href="https://en.wikipedia.org/wiki/URL_normalization">normalized form</a> is used for
+     * deciding whether two given targets are equal.
+     *
+     * @return normalized URL
+     */
     public String getUrl() {
         return url;
     }
 
-
+    /**
+     * Sets the normalized URL of this target.
+     *
+     * @param url
+     *            normalized URL
+     */
     public void setUrl(String url) {
         this.url = url;
     }
 
-
+    /**
+     * Sets the domain name of this URL.
+     *
+     * @param domain
+     *            domain name
+     */
     public void setDomain(String domain) {
         this.domain = domain;
     }
 
-
-    public void setSubDomain(String subDomain) {
-        this.subDomain = subDomain;
+    /**
+     * Sets the subdomain name of this URL.
+     *
+     * @param subdomain
+     */
+    public void setSubdomain(String subdomain) {
+        this.subdomain = subdomain;
     }
 
     /**
-     * @return
-     *      path of this Url. For 'http://www.example.com/sample.htm', domain will be 'sample.htm'
+     * Gets the path of the normalized URL of this target.
+     *
+     * @return path of this target. E.g. for {@code https://en.wikipedia.org/wiki/Crawler}, the path
+     *         will be {@code wiki/Crawler}.
      */
     public String getPath() {
         return path;
     }
 
+    /**
+     * Sets the path of this target.
+     *
+     * @param path
+     *            path
+     */
     public void setPath(String path) {
         this.path = path;
-    }
-
-    /**
-     * @return
-     *      anchor string. For example, in <a href="example.com">A sample anchor</a>
-     *      the anchor string is 'A sample anchor'
-     */
-    public String getAnchor() {
-        return anchor;
-    }
-
-    public void setAnchor(String anchor) {
-        this.anchor = anchor;
-    }
-
-    /**
-     * @return priority for crawling this URL. A lower number results in higher priority.
-     */
-    public int getPriority() {
-        return priority;
-    }
-
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    /**
-     * @return tag in which this URL is found
-     * */
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
-    }
-
-    public String getAttribute(String name) {
-        if (attributes == null) {
-            return "";
-        }
-        return attributes.getOrDefault(name, "");
     }
 
     @Override

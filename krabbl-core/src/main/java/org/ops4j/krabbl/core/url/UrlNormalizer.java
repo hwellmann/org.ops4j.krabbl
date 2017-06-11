@@ -33,13 +33,13 @@ import java.util.Objects;
  *
  * @author Yasser Ganjisaffar
  */
-public class UrlCanonicalizer {
+public class UrlNormalizer {
 
-    public static String getCanonicalURL(String url) {
-        return getCanonicalURL(url, null);
+    public static String normalize(String url) {
+        return normalize(url, null);
     }
 
-    public static String getCanonicalURL(String href, String context) {
+    public static String normalize(String href, String context) {
 
         try {
             URL canonicalURL =

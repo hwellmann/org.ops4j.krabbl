@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.ops4j.krabbl.api.Crawler;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
 import org.ops4j.krabbl.api.Page;
+import org.ops4j.krabbl.api.PageVisitor;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.spi.Frontier;
 import org.ops4j.krabbl.core.url.WebTargetBuilder;
@@ -59,12 +60,15 @@ public class DefaultCrawler implements Crawler {
 
     private BlockingQueue<CompletableFuture<Page>> queue = new LinkedBlockingQueue<>();
 
+    private PageVisitor visitor;
+
     public DefaultCrawler(CrawlerConfiguration config,
-        ScheduledExecutorService executor, Frontier frontier, PageProcessor pageProcessor) {
+        ScheduledExecutorService executor, Frontier frontier, PageProcessor pageProcessor, PageVisitor visitor) {
         this.config = config;
         this.executor = executor;
         this.frontier = frontier;
         this.pageProcessor = pageProcessor;
+        this.visitor = visitor;
         this.seeds = new ArrayList<>();
     }
 
@@ -106,11 +110,13 @@ public class DefaultCrawler implements Crawler {
     }
 
     private void execute() {
+        visitor.onStart();
         schedule(seeds);
         CompletableFuture<Page> futurePage = null;
         while ((futurePage = queue.poll()) != null) {
             completeOnePage(futurePage);
         }
+        visitor.onBeforeExit();
         assert frontier.isFinished() || shuttingDown;
     }
 

@@ -17,6 +17,7 @@
  */
 package org.ops4j.krabbl.core.crawl;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -28,12 +29,16 @@ import org.ops4j.krabbl.api.PageVisitor;
 import org.ops4j.krabbl.api.RobotsConfiguration;
 import org.ops4j.krabbl.core.fetch.PageFetcher;
 import org.ops4j.krabbl.core.robots.RobotsControl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Harald Wellmann
  *
  */
 public class DefaultCrawlerBuilder extends CrawlerBuilder  {
+
+    private static Logger logger = LoggerFactory.getLogger(DefaultCrawlerBuilder.class);
 
     private HttpClientConfiguration httpClientConfiguration;
 
@@ -42,6 +47,8 @@ public class DefaultCrawlerBuilder extends CrawlerBuilder  {
     private ScheduledExecutorService executor;
 
     private PageFetcher pageFetcher;
+
+    private boolean closed;
 
     private synchronized ScheduledExecutorService getExecutor() {
         if (executor == null) {
@@ -71,7 +78,7 @@ public class DefaultCrawlerBuilder extends CrawlerBuilder  {
         InMemoryFrontier frontier = new InMemoryFrontier();
         PageProcessor pageProcessor = new PageProcessor(config, pageVisitor, frontier,
             getPageFetcher(), robotsControl);
-        return new DefaultCrawler(config, getExecutor(), frontier, pageProcessor);
+        return new DefaultCrawler(config, getExecutor(), frontier, pageProcessor, pageVisitor);
     }
 
     @Override
@@ -94,9 +101,32 @@ public class DefaultCrawlerBuilder extends CrawlerBuilder  {
     }
 
     private synchronized PageFetcher getPageFetcher() {
+        requireOpen();
         if (pageFetcher == null) {
             pageFetcher = new PageFetcher(getHttpClientConfiguration());
         }
         return pageFetcher;
+    }
+
+    public void requireOpen() {
+        if (closed) {
+            throw new IllegalStateException("DefaultCrawlerBuilder is closed");
+        }
+    }
+
+    @Override
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
+        this.closed = true;
+        if (pageFetcher != null) {
+            try {
+                pageFetcher.close();
+            }
+            catch (IOException exc) {
+                logger.warn("error closing PageFetcher", exc);
+            }
+        }
     }
 }

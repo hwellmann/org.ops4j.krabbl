@@ -17,7 +17,9 @@
 
 package org.ops4j.krabbl.core.fetch;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -41,14 +43,14 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.ops4j.krabbl.api.HttpClientConfiguration;
 import org.ops4j.krabbl.api.WebTarget;
 import org.ops4j.krabbl.core.exc.PageBiggerThanMaxSizeException;
-import org.ops4j.krabbl.core.url.UrlCanonicalizer;
+import org.ops4j.krabbl.core.url.UrlNormalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Yasser Ganjisaffar
  */
-public class PageFetcher {
+public class PageFetcher implements Closeable {
 
     protected static final Logger logger = LoggerFactory.getLogger(PageFetcher.class);
     protected PoolingHttpClientConnectionManager connectionManager;
@@ -77,6 +79,8 @@ public class PageFetcher {
         clientBuilder.setConnectionManager(connectionManager);
         clientBuilder.setUserAgent(config.getUserAgentString());
         clientBuilder.setDefaultHeaders(config.getDefaultHeaders());
+        clientBuilder.evictExpiredConnections();
+        clientBuilder.evictIdleConnections(5, TimeUnit.MINUTES);
 
         if (config.getProxyHost() != null) {
             if (config.getProxyUsername() != null) {
@@ -125,7 +129,7 @@ public class PageFetcher {
 
                 Header header = response.getFirstHeader("Location");
                 if (header != null) {
-                    String movedToUrl = UrlCanonicalizer.getCanonicalURL(header.getValue(),
+                    String movedToUrl = UrlNormalizer.normalize(header.getValue(),
                         toFetchURL);
                     fetchResult.setMovedToUrl(movedToUrl);
                 }
@@ -134,7 +138,7 @@ public class PageFetcher {
                 fetchResult.setFetchedUrl(toFetchURL);
                 String uri = request.getURI().toString();
                 if (!uri.equals(toFetchURL)) {
-                    if (!UrlCanonicalizer.getCanonicalURL(uri).equals(toFetchURL)) {
+                    if (!UrlNormalizer.normalize(uri).equals(toFetchURL)) {
                         fetchResult.setFetchedUrl(uri);
                     }
                 }
@@ -194,6 +198,11 @@ public class PageFetcher {
      */
     protected HttpUriRequest newHttpUriRequest(String url) {
         return new HttpGet(url);
+    }
+
+    @Override
+    public void close() throws IOException {
+        httpClient.close();
     }
 
 }

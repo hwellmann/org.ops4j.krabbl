@@ -32,7 +32,7 @@ public class WebTargetBuilder {
     }
 
     public WebTarget build() {
-        url = UrlCanonicalizer.getCanonicalURL(url);
+        url = UrlNormalizer.normalize(url);
         int domainStartIdx = url.indexOf("//") + 2;
         int domainEndIdx = url.indexOf('/', domainStartIdx);
         domainEndIdx = (domainEndIdx > domainStartIdx) ? domainEndIdx : url.length();
@@ -62,7 +62,7 @@ public class WebTargetBuilder {
         WebTarget target = new WebTarget();
         target.setUrl(url);
         target.setDomain(domain);
-        target.setSubDomain(subDomain);
+        target.setSubdomain(subDomain);
         target.setPath(path);
         return target;
     }

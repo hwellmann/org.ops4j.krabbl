@@ -19,15 +19,12 @@ package org.ops4j.krabbl.core.crawl;
 
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.krabbl.api.Crawler;
 import org.ops4j.krabbl.api.CrawlerBuilder;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
-import org.ops4j.krabbl.api.Page;
-import org.ops4j.krabbl.api.PageVisitor;
-import org.ops4j.krabbl.api.WebTarget;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Harald Wellmann
@@ -35,43 +32,18 @@ import org.slf4j.LoggerFactory;
  */
 public class CrawlerTest {
 
-    private CrawlerBuilder crawlerBuilder = CrawlerBuilder.builder();
+    private CrawlerBuilder crawlerBuilder;
 
-    private static Logger log = LoggerFactory.getLogger(CrawlerTest.class);
-
-    public static class TestVisitor implements PageVisitor {
-
-        private String domain;
-        private String subdomain;
-
-        public TestVisitor(String subdomain, String domain) {
-            this.subdomain = subdomain;
-            this.domain = domain;
-        }
-
-        public TestVisitor(String domain) {
-            this.domain = domain;
-        }
-
-        @Override
-        public boolean shouldVisit(Page referringPage, WebTarget url) {
-            if (url.getPath().contains(":") && !url.getPath().contains("Hauptseite")) {
-                return false;
-            }
-            boolean subdomainMatches = subdomain == null || subdomain.equals(url.getSubDomain());
-            return subdomainMatches && domain.equals(url.getDomain());
-        }
-
-        @Override
-        public void visit(Page page) {
-            int numLinks = 0;
-            if (page.getParseData() != null) {
-                numLinks = page.getParseData().getOutgoingUrls().size();
-            }
-            log.info("Visiting {} at depth {} with {} outgoing links", page.getWebTarget().getUrl(),
-                page.getWebTarget().getDepth(), numLinks);
-        }
+    @Before
+    public void before() {
+        crawlerBuilder = CrawlerBuilder.builder();
     }
+
+    @After
+    public void after() {
+        crawlerBuilder.close();
+    }
+
 
     @Test
     public void shouldCrawlOps4j() {

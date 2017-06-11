@@ -153,9 +153,8 @@ public class PageProcessor {
             return;
         }
         WebTarget webUrl = new WebTargetBuilder(movedToUrl).build();
-        webUrl.setParentUrl(curUrl.getParentUrl());
+        webUrl.setReferringUrl(curUrl.getReferringUrl());
         webUrl.setDepth(curUrl.getDepth());
-        webUrl.setAnchor(curUrl.getAnchor());
 
         page.setRedirectedToUrl(webUrl);
         visitor.onRedirectedStatusCode(page);
@@ -223,7 +222,7 @@ public class PageProcessor {
         List<WebTarget> toSchedule = new ArrayList<>();
         int maxCrawlDepth = config.getMaxDepthOfCrawling();
         for (WebTarget webUrl : parseData.getOutgoingUrls()) {
-            webUrl.setParentUrl(curUrl.getUrl());
+            webUrl.setReferringUrl(curUrl.getUrl());
             if (frontier.isSeenBefore(webUrl.getUrl())) {
                 // This is not the first time that this Url is visited. So, we set the
                 // depth to a negative number.
