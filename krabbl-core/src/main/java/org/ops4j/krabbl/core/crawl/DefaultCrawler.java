@@ -149,9 +149,9 @@ public class DefaultCrawler implements Crawler {
         int max = config.getMaxPagesToFetch();
         if (max >= 0) {
             max = config.getMaxPagesToFetch() - (int) frontier.getNumberOfScheduledPages();
-        }
-        if (newTargets.size() > max) {
-            newTargets = newTargets.subList(0, max);
+            if (newTargets.size() > max) {
+                newTargets = newTargets.subList(0, max);
+            }
         }
         return newTargets;
     }

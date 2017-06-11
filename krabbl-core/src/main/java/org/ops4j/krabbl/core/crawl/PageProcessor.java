@@ -68,6 +68,7 @@ public class PageProcessor {
         this.frontier = frontier;
         this.parser = new JsoupHtmlParser();
         this.pageFetcher = pageFetcher;
+        this.robotsControl = robotsControl;
     }
 
     public List<WebTarget> handleOutgoingLinks(Page page) {

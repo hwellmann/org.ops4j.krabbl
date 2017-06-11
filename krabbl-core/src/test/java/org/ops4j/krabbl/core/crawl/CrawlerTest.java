@@ -20,11 +20,12 @@ package org.ops4j.krabbl.core.crawl;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.ops4j.krabbl.api.Crawler;
+import org.ops4j.krabbl.api.CrawlerBuilder;
 import org.ops4j.krabbl.api.CrawlerConfiguration;
 import org.ops4j.krabbl.api.Page;
 import org.ops4j.krabbl.api.PageVisitor;
 import org.ops4j.krabbl.api.WebTarget;
-import org.ops4j.krabbl.core.crawl.DefaultCrawler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,19 @@ import org.slf4j.LoggerFactory;
  */
 public class CrawlerTest {
 
+    private CrawlerBuilder crawlerBuilder = CrawlerBuilder.builder();
+
     private static Logger log = LoggerFactory.getLogger(CrawlerTest.class);
 
     public static class TestVisitor implements PageVisitor {
 
         private String domain;
+        private String subdomain;
+
+        public TestVisitor(String subdomain, String domain) {
+            this.subdomain = subdomain;
+            this.domain = domain;
+        }
 
         public TestVisitor(String domain) {
             this.domain = domain;
@@ -46,7 +55,11 @@ public class CrawlerTest {
 
         @Override
         public boolean shouldVisit(Page referringPage, WebTarget url) {
-            return url.getDomain().equals(domain);
+            if (url.getPath().contains(":") && !url.getPath().contains("Hauptseite")) {
+                return false;
+            }
+            boolean subdomainMatches = subdomain == null || subdomain.equals(url.getSubDomain());
+            return subdomainMatches && domain.equals(url.getDomain());
         }
 
         @Override
@@ -64,34 +77,44 @@ public class CrawlerTest {
     public void shouldCrawlOps4j() {
         CrawlerConfiguration config = new CrawlerConfiguration();
         config.setMaxDepthOfCrawling(2);
-        DefaultCrawler crawlController = new DefaultCrawler(config,
+        Crawler crawlController = crawlerBuilder.newCrawler(config,
             new TestVisitor("ops4j.github.io"));
         crawlController.addSeed("http://ops4j.github.io");
         crawlController.start();
-        crawlController.waitUntilFinish();
+        crawlController.awaitTermination();
     }
 
     @Test
     public void shouldCrawlGithub() throws InterruptedException {
         CrawlerConfiguration config = new CrawlerConfiguration();
         config.setMaxDepthOfCrawling(2);
-        DefaultCrawler crawlController = new DefaultCrawler(config, new TestVisitor("github.com"));
+        Crawler crawlController = crawlerBuilder.newCrawler(config, new TestVisitor("github.com"));
         crawlController.addSeed("http://github.com");
         crawlController.start();
         TimeUnit.SECONDS.sleep(5);
         crawlController.shutdown();
-        crawlController.waitUntilFinish();
+        crawlController.awaitTermination();
     }
 
     @Test
     public void shouldHandleMetaRefresh() {
         CrawlerConfiguration config = new CrawlerConfiguration();
         config.setMaxDepthOfCrawling(2);
-        DefaultCrawler crawlController = new DefaultCrawler(config,
+        Crawler crawlController = crawlerBuilder.newCrawler(config,
             new TestVisitor("ops4j.github.io"));
         crawlController.addSeed("http://ops4j.github.io/dadl/latest/");
         crawlController.start();
-        crawlController.waitUntilFinish();
+        crawlController.awaitTermination();
     }
 
+    @Test
+    public void shouldCrawlWikipedia() {
+        CrawlerConfiguration config = new CrawlerConfiguration();
+        config.setMaxDepthOfCrawling(2);
+        config.setMaxPagesToFetch(20);
+        Crawler crawlController = crawlerBuilder.newCrawler(config, new TestVisitor("de", "wikipedia.org"));
+        crawlController.addSeed("http://de.wikipedia.org");
+        crawlController.start();
+        crawlController.awaitTermination();
+    }
 }

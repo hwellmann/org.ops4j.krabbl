@@ -38,10 +38,10 @@ public class PageFetchResult {
     protected static final Logger logger = LoggerFactory.getLogger(PageFetchResult.class);
 
     protected int statusCode;
-    protected HttpEntity entity = null;
-    protected Header[] responseHeaders = null;
-    protected String fetchedUrl = null;
-    protected String movedToUrl = null;
+    protected HttpEntity entity;
+    protected Header[] responseHeaders;
+    protected String fetchedUrl;
+    protected String movedToUrl;
 
     public int getStatusCode() {
         return statusCode;
