@@ -39,6 +39,6 @@
     <appender-ref ref="TEST_LOG"/>
   </root>
   <logger name="org.apache.http" level="INFO"/> 
-  <logger name="org.ops4j.krabbl" level="INFO"/> 
+  <logger name="org.ops4j.krabbl" level="DEBUG"/> 
   
 </configuration>
